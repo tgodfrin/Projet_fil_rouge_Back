@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -25,6 +26,12 @@ public class Doc {
     @NotBlank
     @Size(min = 3, max = 100)
     protected String title;
+
+    @Column(nullable = false)
+    protected String url;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime addedDate;
 
     @ManyToMany
     @JoinTable(

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Event {
 
     @Id
@@ -28,7 +30,7 @@ public class Event {
     @Column(columnDefinition = "TEXT")
     protected String description;
 
-    @Column(updatable = false, nullable = false)
+    @Column(nullable = true)
     private LocalDateTime readingDate;
 
     @Enumerated(EnumType.STRING)
