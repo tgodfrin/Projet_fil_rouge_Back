@@ -25,15 +25,21 @@ public class Loan {
     @Column(nullable = false)
     private LocalDateTime endDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime realEndDate;
 
     @ManyToOne
-    protected RequestStatus requestStatus;
+    @JoinColumn(nullable = false)
+    protected AppUser requester;
 
     @ManyToOne
-    protected AppUser appUser;
+    @JoinColumn(nullable = true)
+    protected AppUser validator;
 
     @ManyToOne
+    @JoinColumn(nullable = false)
     protected Equipment equipment;
+
+    @ManyToOne
+    protected RequestStatus requestStatus;
 }

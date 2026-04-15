@@ -15,21 +15,21 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Profil {
+public class Characteristic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Integer id;
 
-    @Column(length = 30, nullable = false, unique = true)
+    @Column(length = 50, nullable = false, unique = true)
     @NotBlank
-    @Size(min = 3, max = 30)
-    protected String type;
+    @Size(min = 2, max = 50)
+    protected String name;
 
     @ManyToMany
     @JoinTable(
-            name = "can_loan",
-            joinColumns = @JoinColumn(name = "profil_id"),
+            name = "est_constitue",
+            joinColumns = @JoinColumn(name = "caracteristique_id"),
             inverseJoinColumns = @JoinColumn(name = "equipment_family_id")
     )
     protected List<EquipmentFamily> equipmentFamilies;

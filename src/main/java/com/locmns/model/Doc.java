@@ -8,27 +8,29 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Equipment {
+public class Doc {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Integer id;
 
-    @Column(length = 30, nullable = false, unique = true)
-    @NotBlank
-    @Size(min = 3, max = 30)
-    protected String equipmentName;
-
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     @NotBlank
     @Size(min = 3, max = 100)
-    protected String location;
+    protected String title;
 
-    @ManyToOne
-    protected EquipmentFamily equipmentFamily;
+    @ManyToMany
+    @JoinTable(
+            name = "fait_reference",
+            joinColumns = @JoinColumn(name = "doc_id"),
+            inverseJoinColumns = @JoinColumn(name = "equipment_id")
+    )
+    protected List<Equipment> equipments;
 }

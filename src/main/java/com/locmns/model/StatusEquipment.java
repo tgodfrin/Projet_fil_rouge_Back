@@ -1,13 +1,11 @@
 package com.locmns.model;
 
-import com.locmns.enums.EventType;
 import com.locmns.enums.StatusEquipmentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -22,17 +20,20 @@ public class StatusEquipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Integer id;
 
-    @CreatedDate
     @Column(updatable = false, nullable = false)
-    private LocalDateTime BeginStatusDate;
+    private LocalDateTime beginStatusDate;
 
     @Column
-    private LocalDateTime EndStatusDate;
+    private LocalDateTime endStatusDate;
 
     @Column(columnDefinition = "TEXT")
     protected String descriptionStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false)
     private StatusEquipmentType statusEquipmentType;
+
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    protected Equipment equipment;
 }
