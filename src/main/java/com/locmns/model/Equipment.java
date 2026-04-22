@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,6 +21,11 @@ public class Equipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Integer id;
 
+    @Column(length = 20, nullable = false, unique = true)
+    @NotBlank
+    @Size(min = 3, max = 20)
+    protected String reference;
+
     @Column(length = 30, nullable = false, unique = true)
     @NotBlank
     @Size(min = 3, max = 30)
@@ -28,6 +35,9 @@ public class Equipment {
     @NotBlank
     @Size(min = 3, max = 100)
     protected String location;
+
+    @Column
+    protected LocalDate acquisitionDate;
 
     @ManyToOne
     protected EquipmentFamily equipmentFamily;

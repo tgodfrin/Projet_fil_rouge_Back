@@ -7,6 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -38,6 +41,10 @@ public class AppUser {
     @Column(nullable = false)
     @NotBlank(groups = OnCreate.class, message = "Le mot de passe ne peut pas être vide")
     protected String password;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    protected LocalDateTime createdAt;
 
     @ManyToOne
     protected Profil profil;
