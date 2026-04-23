@@ -9,4 +9,6 @@ import java.util.List;
 public interface StatusEquipmentDao extends JpaRepository<StatusEquipment, Integer> {
 
     List<StatusEquipment> findByEquipment(Equipment equipment);
+
+    List<StatusEquipment> findByEquipmentAndEndStatusDateIsNull(Equipment equipment);
 }

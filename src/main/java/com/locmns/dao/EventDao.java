@@ -9,4 +9,6 @@ import java.util.List;
 public interface EventDao extends JpaRepository<Event, Integer> {
 
     List<Event> findByLoan(Loan loan);
+
+    List<Event> findByReadingDateIsNull();
 }

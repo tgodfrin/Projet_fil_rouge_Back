@@ -1,6 +1,7 @@
 package com.locmns.dao;
 
 import com.locmns.model.AppUser;
+import com.locmns.model.Equipment;
 import com.locmns.model.Loan;
 import com.locmns.model.RequestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,6 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     List<Loan> findByRequestStatus(RequestStatus requestStatus);
 
     List<Loan> findByEndDateBeforeAndRequestStatus(LocalDateTime date, RequestStatus requestStatus);
+
+    List<Loan> findByEquipment(Equipment equipment);
 }
