@@ -19,7 +19,7 @@ public interface EquipmentDao extends JpaRepository<Equipment, Integer> {
             SELECT e FROM Equipment e
             WHERE e NOT IN (
                 SELECT l.equipment FROM Loan l
-                WHERE l.requestStatus.statusType != com.locmns.enums.StatusLoanType.INVALID
+                WHERE l.statusType != com.locmns.enums.StatusLoanType.INVALID
                 AND l.beginDate < :endDate
                 AND l.endDate > :beginDate
             )

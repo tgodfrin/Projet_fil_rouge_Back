@@ -32,7 +32,7 @@ public class Event {
     private LocalDateTime readingDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(nullable = false)
     private EventType type;
 
     @ManyToOne
