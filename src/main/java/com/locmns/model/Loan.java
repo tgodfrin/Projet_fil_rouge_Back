@@ -41,5 +41,6 @@ public class Loan {
     protected Equipment equipment;
 
     @ManyToOne
+    @JoinColumn(nullable = false)
     protected RequestStatus requestStatus;
 }

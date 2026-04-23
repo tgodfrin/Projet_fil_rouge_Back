@@ -40,5 +40,6 @@ public class Equipment {
     protected LocalDate acquisitionDate;
 
     @ManyToOne
+    @JoinColumn(nullable = false)
     protected EquipmentFamily equipmentFamily;
 }

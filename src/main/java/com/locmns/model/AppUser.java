@@ -47,5 +47,6 @@ public class AppUser {
     protected LocalDateTime createdAt;
 
     @ManyToOne
+    @JoinColumn(nullable = false)
     protected Profil profil;
 }
