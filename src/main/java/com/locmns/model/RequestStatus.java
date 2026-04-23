@@ -26,7 +26,7 @@ public class RequestStatus {
     private LocalDateTime statusDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private StatusLoanType statusType;
 
 }

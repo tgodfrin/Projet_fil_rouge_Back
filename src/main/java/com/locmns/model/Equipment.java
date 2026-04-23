@@ -32,7 +32,6 @@ public class Equipment {
     protected String equipmentName;
 
     @Column(length = 100)
-    @NotBlank
     @Size(min = 3, max = 100)
     protected String location;
 
