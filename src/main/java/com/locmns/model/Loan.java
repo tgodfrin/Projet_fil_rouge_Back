@@ -1,5 +1,6 @@
 package com.locmns.model;
 
+import com.locmns.enums.StatusLoanType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +29,13 @@ public class Loan {
     @Column(nullable = true)
     private LocalDateTime realEndDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusLoanType statusType;
+
+    @Column(nullable = false)
+    private LocalDateTime statusDate;
+
     @ManyToOne
     @JoinColumn(nullable = false)
     protected AppUser requester;
@@ -40,6 +48,5 @@ public class Loan {
     @JoinColumn(nullable = false)
     protected Equipment equipment;
 
-    @ManyToOne
-    protected RequestStatus requestStatus;
+
 }

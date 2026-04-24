@@ -32,7 +32,6 @@ public class Equipment {
     protected String equipmentName;
 
     @Column(length = 100)
-    @NotBlank
     @Size(min = 3, max = 100)
     protected String location;
 
@@ -40,5 +39,6 @@ public class Equipment {
     protected LocalDate acquisitionDate;
 
     @ManyToOne
+    @JoinColumn(nullable = false)
     protected EquipmentFamily equipmentFamily;
 }

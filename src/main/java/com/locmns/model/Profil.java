@@ -1,8 +1,7 @@
 package com.locmns.model;
 
+import com.locmns.enums.ProfilType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,10 +20,9 @@ public class Profil {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Integer id;
 
-    @Column(length = 30, nullable = false, unique = true)
-    @NotBlank
-    @Size(min = 3, max = 30)
-    protected String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
+    protected ProfilType type;
 
     @ManyToMany
     @JoinTable(
