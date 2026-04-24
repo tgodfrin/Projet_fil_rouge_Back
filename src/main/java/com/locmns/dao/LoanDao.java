@@ -18,4 +18,7 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     List<Loan> findByEndDateBeforeAndStatusType(LocalDateTime date, StatusLoanType statusType);
 
     List<Loan> findByEquipment(Equipment equipment);
+
+    // Pour la vue planning : emprunts qui chevauchent une période donnée
+    List<Loan> findByBeginDateLessThanEqualAndEndDateGreaterThanEqual(LocalDateTime end, LocalDateTime begin);
 }
