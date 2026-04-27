@@ -30,4 +30,9 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     // Retourne tous les emprunts qui chevauchent une période donnée (vue planning)
     // Logique : un emprunt chevauche si son début <= fin de la fenêtre ET sa fin >= début de la fenêtre
     List<Loan> findByBeginDateLessThanEqualAndEndDateGreaterThanEqual(LocalDateTime end, LocalDateTime begin);
+
+    // Vérifie s'il existe au moins un emprunt avec ce statut pour cet équipement
+    // Utilisé par EquipmentService pour calculer le statut EN_PRET (loan IN_PROGRESS actif)
+    // exists... est plus léger que find... car renvoie un boolean sans charger l'objet entier
+    boolean existsByEquipmentAndStatusType(Equipment equipment, StatusLoanType statusType);
 }
