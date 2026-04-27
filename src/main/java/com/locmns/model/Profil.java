@@ -1,6 +1,8 @@
 package com.locmns.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.enums.ProfilType;
+import com.locmns.view.AppUserView;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,10 +20,12 @@ public class Profil {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonView(AppUserView.class)
     protected Integer id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)
+    @JsonView(AppUserView.class)
     protected ProfilType type;
 
     @ManyToMany
