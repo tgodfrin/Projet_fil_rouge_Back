@@ -2,6 +2,7 @@ package com.locmns.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.view.EquipmentView;
+import com.locmns.view.LoanView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -21,19 +22,22 @@ public class Equipment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonView(EquipmentView.class)
+    // Exposé dans EquipmentView (liste équipements) ET LoanView (pour identifier l'équipement dans un emprunt)
+    @JsonView({EquipmentView.class, LoanView.class})
     protected Integer id;
 
     @Column(length = 20, nullable = false, unique = true)
     @NotBlank
     @Size(min = 3, max = 20)
-    @JsonView(EquipmentView.class)
+    // Exposé dans les deux views — la référence est utile dans le contexte d'un emprunt
+    @JsonView({EquipmentView.class, LoanView.class})
     protected String reference;
 
     @Column(length = 30, nullable = false, unique = true)
     @NotBlank
     @Size(min = 3, max = 30)
-    @JsonView(EquipmentView.class)
+    // Exposé dans les deux views — le nom est utile dans le contexte d'un emprunt
+    @JsonView({EquipmentView.class, LoanView.class})
     protected String equipmentName;
 
     @Column(length = 100)

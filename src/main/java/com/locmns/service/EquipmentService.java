@@ -80,8 +80,9 @@ public class EquipmentService {
             return; // On s'arrête ici — statut technique prioritaire sur tout
         }
 
-        // 2. Vérifie s'il existe un emprunt IN_PROGRESS sur cet équipement
-        boolean isOnLoan = loanDao.existsByEquipmentAndStatusType(equipment, StatusLoanType.IN_PROGRESS);
+        // 2. Vérifie s'il existe un emprunt VALID sur cet équipement
+        // VALID = gestionnaire a approuvé, équipement physiquement sorti — donc EN_PRET
+        boolean isOnLoan = loanDao.existsByEquipmentAndStatusType(equipment, StatusLoanType.VALID);
         equipment.setStatus(isOnLoan ? "EN_PRET" : "DISPONIBLE");
     }
 
