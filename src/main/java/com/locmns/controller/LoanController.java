@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +54,15 @@ public class LoanController {
     public ResponseEntity<Loan> create(@RequestBody @Valid Loan loan) {
         loanService.create(loan);
         return new ResponseEntity<>(loan, HttpStatus.CREATED);
+    }
+
+    // GET /loan/planning?begin=...&end=... → tous les loans qui chevauchent la période donnée
+    @GetMapping("/loan/planning")
+    @JsonView(LoanView.class)
+    public List<Loan> getForPlanning(
+            @RequestParam LocalDateTime begin,
+            @RequestParam LocalDateTime end) {
+        return loanService.findForPlanning(begin, end);
     }
 
     // PUT /loan/{id}/validate?validatorId=X → gestionnaire valide : VALID → IN_PROGRESS

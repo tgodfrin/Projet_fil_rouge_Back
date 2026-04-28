@@ -25,6 +25,11 @@ public class LoanService {
         return loanDao.findById(id);
     }
 
+    // Retourne tous les loans qui chevauchent une période — utilisé par le planning
+    public List<Loan> findForPlanning(LocalDateTime begin, LocalDateTime end) {
+        return loanDao.findByBeginDateLessThanEqualAndEndDateGreaterThanEqual(end, begin);
+    }
+
     public List<Loan> findByRequester(Integer userId) {
         AppUser user = new AppUser();
         user.setId(userId);
