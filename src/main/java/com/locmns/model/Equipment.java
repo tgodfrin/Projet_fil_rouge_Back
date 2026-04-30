@@ -55,7 +55,7 @@ public class Equipment {
     protected EquipmentFamily equipmentFamily;
 
     // Champ calculé — PAS en base de données (@Transient = ignoré par JPA/Hibernate)
-    // Valeurs possibles : DISPONIBLE | EN_PRET | OUT_OF_SERVICE | UNDER_REPAIR
+    // Valeurs possibles :  DISPONIBLE | EN_PRET | OUT_OF_SERVICE | UNDER_REPAIR
     // Rempli par EquipmentService.setCalculatedStatus() avant chaque retour d'API
     @Transient
     @JsonView(EquipmentView.class)

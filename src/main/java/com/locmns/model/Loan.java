@@ -2,6 +2,7 @@ package com.locmns.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.enums.StatusLoanType;
+import com.locmns.view.EventView;
 import com.locmns.view.LoanView;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ public class Loan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonView(LoanView.class)
+    @JsonView({LoanView.class, EventView.class})
     protected Integer id;
 
     // Date de début souhaitée par le demandeur — fournie à la création
