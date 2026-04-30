@@ -1,5 +1,7 @@
 package com.locmns.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.view.CharacteristicValueView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -20,18 +22,23 @@ public class CharacteristicValue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonView(CharacteristicValueView.class)
     protected Integer id;
 
     @Column(nullable = false)
     @NotBlank
+    @JsonView(CharacteristicValueView.class)
     protected String value;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
+    @JsonView(CharacteristicValueView.class)
     private LocalDateTime beginDate;
 
     @Column(nullable = true)
+    @JsonView(CharacteristicValueView.class)
     private LocalDateTime endDate;
+
 
     @ManyToMany
     @JoinTable(
@@ -43,5 +50,6 @@ public class CharacteristicValue {
 
     @ManyToOne
     @JoinColumn(nullable = false)
+    @JsonView(CharacteristicValueView.class)
     protected Characteristic characteristic;
 }
