@@ -1,0 +1,35 @@
+services:
+
+  # ── Base de données PostgreSQL ────────────────────────────
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB:       locmns
+      POSTGRES_USER:     locmns_user
+      POSTGRES_PASSWORD: locmns_pass
+    ports:
+      - "5433:5432"   # 5433 sur ta machine → 5432 dans le conteneur
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # données persistées entre les redémarrages
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U locmns_user -d locmns"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Spring Boot back-end ──────────────────────────────────
+  back:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # Remplace localhost par "postgres" (nom du service Docker)
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/locmns
+      SPRING_DATASOURCE_USERNAME: locmns_user
+      SPRING_DATASOURCE_PASSWORD: locmns_pass
+    depends_on:
+      postgres:
+        condition: service_healthy   # attend que Postgres soit prêt avant de démarrer
+
+volumes:
+  pgdata:
