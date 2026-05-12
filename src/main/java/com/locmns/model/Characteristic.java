@@ -1,5 +1,7 @@
 package com.locmns.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.view.CharacteristicValueView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -19,11 +21,13 @@ public class Characteristic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonView(CharacteristicValueView.class)
     protected Integer id;
 
     @Column(length = 50, nullable = false, unique = true)
     @NotBlank
     @Size(min = 2, max = 50)
+    @JsonView(CharacteristicValueView.class)
     protected String name;
 
     @ManyToMany
