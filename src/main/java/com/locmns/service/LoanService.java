@@ -1,5 +1,7 @@
 package com.locmns.service;
 
+import com.locmns.dao.AppUserDao;
+import com.locmns.dao.EquipmentDao;
 import com.locmns.dao.LoanDao;
 import com.locmns.enums.StatusLoanType;
 import com.locmns.model.AppUser;
@@ -7,6 +9,7 @@ import com.locmns.model.Equipment;
 import com.locmns.model.Loan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,7 +19,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class LoanService {
 
-    private final LoanDao loanDao;
+    private final LoanDao      loanDao;
+    private final AppUserDao   appUserDao;
+    private final EquipmentDao equipmentDao;
     
     public List<Loan> findAll() {
         return loanDao.findAll();
@@ -54,9 +59,28 @@ public class LoanService {
         return loanDao.findByStatusType(StatusLoanType.IN_PROGRESS);
     }
 
-    public void create(Loan loan) {
+    // @Transactional nécessaire pour charger la collection lazy profil.equipmentFamilies
+    @Transactional
+    public void create(Loan loan) throws UnauthorizedEquipmentFamilyException {
         loan.setId(null);
-        // IN_PROGRESS = demande envoyée, en attente de traitement par le gestionnaire
+
+        // Chargement complet du demandeur pour accéder à son profil et ses familles autorisées
+        AppUser requester = appUserDao.findById(loan.getRequester().getId())
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        // Chargement complet de l'équipement pour accéder à sa famille
+        Equipment equipment = equipmentDao.findById(loan.getEquipment().getId())
+                .orElseThrow(() -> new RuntimeException("Équipement introuvable"));
+
+        // Vérifie que la famille de l'équipement est dans les familles autorisées du profil
+        // Si la liste est vide, aucune famille n'est autorisée → accès refusé
+        boolean isAllowed = requester.getProfil().getEquipmentFamilies().stream()
+                .anyMatch(f -> f.getId().equals(equipment.getEquipmentFamily().getId()));
+
+        if (!isAllowed) {
+            throw new UnauthorizedEquipmentFamilyException();
+        }
+
         loan.setStatusType(StatusLoanType.IN_PROGRESS);
         loan.setStatusDate(LocalDateTime.now());
         loan.setValidator(null);
@@ -96,4 +120,7 @@ public class LoanService {
     }
 
     public static class LoanNotFoundException extends Exception {}
+
+    // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé
+    public static class UnauthorizedEquipmentFamilyException extends Exception {}
 }
