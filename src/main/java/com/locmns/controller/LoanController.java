@@ -52,8 +52,13 @@ public class LoanController {
     @PostMapping("/loan")
     @JsonView(LoanView.class)
     public ResponseEntity<Loan> create(@RequestBody @Valid Loan loan) {
-        loanService.create(loan);
-        return new ResponseEntity<>(loan, HttpStatus.CREATED);
+        try {
+            loanService.create(loan);
+            return new ResponseEntity<>(loan, HttpStatus.CREATED);
+        } catch (LoanService.UnauthorizedEquipmentFamilyException e) {
+            // Le profil de l'utilisateur n'autorise pas la famille de cet équipement
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 
     // GET /loan/planning?begin=...&end=... → tous les loans qui chevauchent la période donnée
