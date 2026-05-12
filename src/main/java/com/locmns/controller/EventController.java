@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.model.Event;
 import com.locmns.service.EventService;
 import com.locmns.view.EventView;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class EventController {
     // Le front envoie : type (EventType), description, loan: { id }
     @PostMapping("/event")
     @JsonView(EventView.class)
-    public ResponseEntity<Event> create(@RequestBody Event event) {
+    public ResponseEntity<Event> create(@RequestBody @Valid Event event) {
         Event saved = eventService.create(event);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }

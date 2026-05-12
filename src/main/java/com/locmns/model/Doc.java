@@ -33,6 +33,7 @@ public class Doc {
     protected String title;
 
     @Column(nullable = false)
+    @NotBlank
     @JsonView(DocView.class)
     protected String url;
 

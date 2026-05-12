@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.model.CharacteristicValue;
 import com.locmns.service.CharacteristicValueService;
 import com.locmns.view.CharacteristicValueView;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class CharacteristicValueController {
     // Le front envoie : value, equipments: [{ id }], characteristic: { id }
     @PostMapping("/characteristic-value")
     @JsonView(CharacteristicValueView.class)
-    public ResponseEntity<CharacteristicValue> create(@RequestBody CharacteristicValue characteristicValue) {
+    public ResponseEntity<CharacteristicValue> create(@RequestBody @Valid CharacteristicValue characteristicValue) {
         CharacteristicValue saved = characteristicValueService.create(characteristicValue);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }

@@ -5,6 +5,7 @@ import com.locmns.enums.StatusLoanType;
 import com.locmns.view.EventView;
 import com.locmns.view.LoanView;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,11 +27,13 @@ public class Loan {
 
     // Date de début souhaitée par le demandeur — fournie à la création
     @Column(nullable = false)
+    @NotNull
     @JsonView(LoanView.class)
     private LocalDateTime beginDate;
 
     // Date de fin prévue — fournie à la création
     @Column(nullable = false)
+    @NotNull
     @JsonView(LoanView.class)
     private LocalDateTime endDate;
 
@@ -54,6 +57,7 @@ public class Loan {
     // L'utilisateur qui a fait la demande — on expose ses champs annotés LoanView (id, name, lastname)
     @ManyToOne
     @JoinColumn(nullable = false)
+    @NotNull
     @JsonView(LoanView.class)
     protected AppUser requester;
 
@@ -66,6 +70,7 @@ public class Loan {
     // L'équipement emprunté — on expose ses champs annotés LoanView (id, reference, equipmentName)
     @ManyToOne
     @JoinColumn(nullable = false)
+    @NotNull
     @JsonView(LoanView.class)
     protected Equipment equipment;
 }

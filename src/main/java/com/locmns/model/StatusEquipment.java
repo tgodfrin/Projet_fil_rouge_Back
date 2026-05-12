@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.enums.StatusEquipmentType;
 import com.locmns.view.StatusEquipmentView;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,7 @@ public class StatusEquipment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @NotNull
     @JsonView(StatusEquipmentView.class)
     private StatusEquipmentType statusEquipmentType;
 
@@ -48,6 +50,7 @@ public class StatusEquipment {
     // Attention : Equipment contient un @Transient status, mais il sera null ici (pas calculé dans ce contexte)
     @ManyToOne
     @JoinColumn(nullable = false)
+    @NotNull
     @JsonView(StatusEquipmentView.class)
     protected Equipment equipment;
 }

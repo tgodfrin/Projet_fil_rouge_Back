@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.enums.EventType;
 import com.locmns.view.EventView;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +41,7 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @NotNull
     @JsonView(EventView.class)
     private EventType type;
 
@@ -47,6 +49,7 @@ public class Event {
     // Loan.id est annoté @JsonView({LoanView.class, EventView.class}) dans Loan.java
     @ManyToOne
     @JoinColumn(nullable = false)
+    @NotNull
     @JsonView(EventView.class)
     protected Loan loan;
 

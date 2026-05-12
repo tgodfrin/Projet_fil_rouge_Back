@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.model.Doc;
 import com.locmns.service.DocService;
 import com.locmns.view.DocView;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class DocController {
     // Le front envoie : title, url, equipments: [{ id }]
     @PostMapping("/doc")
     @JsonView(DocView.class)
-    public ResponseEntity<Doc> create(@RequestBody Doc doc) {
+    public ResponseEntity<Doc> create(@RequestBody @Valid Doc doc) {
         Doc saved = docService.create(doc);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
