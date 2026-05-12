@@ -46,6 +46,20 @@ public class EquipmentController {
         return equipmentService.findAvailableForPeriod(begin, end);
     }
 
+    // GET /equipment/search?q= → recherche serveur par nom
+    @GetMapping("/equipment/search")
+    @JsonView(EquipmentView.class)
+    public List<Equipment> search(@RequestParam String q) {
+        return equipmentService.searchByName(q);
+    }
+
+    // GET /equipment/family/{familyId} → filtre par famille
+    @GetMapping("/equipment/family/{familyId}")
+    @JsonView(EquipmentView.class)
+    public List<Equipment> getByFamily(@PathVariable Integer familyId) {
+        return equipmentService.findByFamily(familyId);
+    }
+
     @PostMapping("/equipment")
     @JsonView(EquipmentView.class)
     public ResponseEntity<Equipment> create(@RequestBody @Valid Equipment equipment) {

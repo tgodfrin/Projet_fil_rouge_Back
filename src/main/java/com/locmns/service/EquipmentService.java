@@ -5,6 +5,7 @@ import com.locmns.dao.LoanDao;
 import com.locmns.dao.StatusEquipmentDao;
 import com.locmns.enums.StatusLoanType;
 import com.locmns.model.Equipment;
+import com.locmns.model.EquipmentFamily;
 import com.locmns.model.StatusEquipment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,22 @@ public class EquipmentService {
         List<Equipment> available = equipmentDao.findAvailableEquipments(begin, end);
         available.forEach(e -> e.setStatus("DISPONIBLE"));
         return available;
+    }
+
+    // Recherche par nom (insensible à la casse, partiel) + calcul statut
+    public List<Equipment> searchByName(String q) {
+        List<Equipment> results = equipmentDao.findByEquipmentNameContainingIgnoreCase(q);
+        results.forEach(this::setCalculatedStatus);
+        return results;
+    }
+
+    // Filtre par famille + calcul statut
+    public List<Equipment> findByFamily(Integer familyId) {
+        EquipmentFamily family = new EquipmentFamily();
+        family.setId(familyId);
+        List<Equipment> results = equipmentDao.findByEquipmentFamily(family);
+        results.forEach(this::setCalculatedStatus);
+        return results;
     }
 
     public void create(Equipment equipment) {

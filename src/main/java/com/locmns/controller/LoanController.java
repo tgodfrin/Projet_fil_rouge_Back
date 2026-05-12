@@ -65,6 +65,27 @@ public class LoanController {
         return loanService.findForPlanning(begin, end);
     }
 
+    // GET /loan/equipment/{equipmentId} → historique des emprunts d'un équipement
+    @GetMapping("/loan/equipment/{equipmentId}")
+    @JsonView(LoanView.class)
+    public List<Loan> getByEquipment(@PathVariable Integer equipmentId) {
+        return loanService.findByEquipment(equipmentId);
+    }
+
+    // GET /loan/overdue → emprunts en retard (VALID dont endDate est dépassée)
+    @GetMapping("/loan/overdue")
+    @JsonView(LoanView.class)
+    public List<Loan> getOverdue() {
+        return loanService.findOverdue();
+    }
+
+    // GET /loan/pending → demandes en attente de validation (IN_PROGRESS)
+    @GetMapping("/loan/pending")
+    @JsonView(LoanView.class)
+    public List<Loan> getPending() {
+        return loanService.findPending();
+    }
+
     // PUT /loan/{id}/validate?validatorId=X → gestionnaire valide : VALID → IN_PROGRESS
     // validatorId passé en @RequestParam car c'est une donnée simple, pas besoin d'un body entier
     @PutMapping("/loan/{id}/validate")

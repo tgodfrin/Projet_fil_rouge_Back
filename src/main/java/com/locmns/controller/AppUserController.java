@@ -42,6 +42,20 @@ public class AppUserController {
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
+    // GET /user/search?q= → recherche serveur par nom, prénom ou email
+    @GetMapping("/user/search")
+    @JsonView(AppUserView.class)
+    public List<AppUser> search(@RequestParam String q) {
+        return appUserService.search(q);
+    }
+
+    // GET /user/profil/{type} → tous les utilisateurs d'un profil donné
+    @GetMapping("/user/profil/{type}")
+    @JsonView(AppUserView.class)
+    public List<AppUser> getByProfil(@PathVariable String type) {
+        return appUserService.findByProfil(type);
+    }
+
     // Modifier uniquement l'email
     @PutMapping("/user/{id}/email")
     public ResponseEntity<Void> updateEmail(

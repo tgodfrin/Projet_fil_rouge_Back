@@ -3,6 +3,7 @@ package com.locmns.service;
 import com.locmns.dao.LoanDao;
 import com.locmns.enums.StatusLoanType;
 import com.locmns.model.AppUser;
+import com.locmns.model.Equipment;
 import com.locmns.model.Loan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,23 @@ public class LoanService {
         AppUser user = new AppUser();
         user.setId(userId);
         return loanDao.findByRequester(user);
+    }
+
+    // Retourne tout l'historique des emprunts pour un équipement donné
+    public List<Loan> findByEquipment(Integer equipmentId) {
+        Equipment equipment = new Equipment();
+        equipment.setId(equipmentId);
+        return loanDao.findByEquipment(equipment);
+    }
+
+    // Retourne les emprunts en retard : VALID dont endDate est dépassée
+    public List<Loan> findOverdue() {
+        return loanDao.findByEndDateBeforeAndStatusType(LocalDateTime.now(), StatusLoanType.VALID);
+    }
+
+    // Retourne les demandes en attente de validation gestionnaire (IN_PROGRESS)
+    public List<Loan> findPending() {
+        return loanDao.findByStatusType(StatusLoanType.IN_PROGRESS);
     }
 
     public void create(Loan loan) {
