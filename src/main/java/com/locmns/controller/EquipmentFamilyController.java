@@ -2,6 +2,7 @@ package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.dao.EquipmentFamilyDao;
+import com.locmns.dto.EquipmentFamilyRequest;
 import com.locmns.model.EquipmentFamily;
 import com.locmns.view.EquipmentFamilyView;
 import jakarta.validation.Valid;
@@ -36,16 +37,16 @@ public class EquipmentFamilyController {
 
     @PostMapping("/equipment-family")
     @JsonView(EquipmentFamilyView.class)
-    public ResponseEntity<EquipmentFamily> create(@RequestBody @Valid EquipmentFamily family) {
-        family.setId(null); // on ignore l'id envoyé
+    public ResponseEntity<EquipmentFamily> create(@RequestBody @Valid EquipmentFamilyRequest dto) {
+        EquipmentFamily family = toEntity(dto);
         equipmentFamilyDao.save(family);
         return new ResponseEntity<>(family, HttpStatus.CREATED);
     }
 
     @PutMapping("/equipment-family/{id}")
-    public ResponseEntity<Void> update(@PathVariable Integer id, @RequestBody @Valid EquipmentFamily family) {
-        Optional<EquipmentFamily> opt = equipmentFamilyDao.findById(id);
-        if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<Void> update(@PathVariable Integer id, @RequestBody @Valid EquipmentFamilyRequest dto) {
+        if (equipmentFamilyDao.findById(id).isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        EquipmentFamily family = toEntity(dto);
         family.setId(id);
         equipmentFamilyDao.save(family);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -53,9 +54,14 @@ public class EquipmentFamilyController {
 
     @DeleteMapping("/equipment-family/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        Optional<EquipmentFamily> opt = equipmentFamilyDao.findById(id);
-        if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (equipmentFamilyDao.findById(id).isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         equipmentFamilyDao.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    private EquipmentFamily toEntity(EquipmentFamilyRequest dto) {
+        EquipmentFamily family = new EquipmentFamily();
+        family.setNameEquipmentFamily(dto.getNameEquipmentFamily());
+        return family;
     }
 }
