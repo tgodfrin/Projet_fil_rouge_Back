@@ -1,6 +1,7 @@
 package com.locmns.service;
 
 import com.locmns.dao.AppUserDao;
+import com.locmns.dao.ProfilDao;
 import com.locmns.enums.ProfilType;
 import com.locmns.model.AppUser;
 import com.locmns.model.Profil;
@@ -17,6 +18,7 @@ public class AppUserService {
     public static class UserNotFoundException extends Exception {}
 
     private final AppUserDao appUserDao;
+    private final ProfilDao  profilDao;
 
     public List<AppUser> findAll() {
         return appUserDao.findAll();
@@ -29,6 +31,9 @@ public class AppUserService {
     public void create(AppUser user) {
         user.setId(null);
         // TODO: user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        // Charger le Profil managé pour éviter l'erreur "detached entity" de JPA
+        Profil managedProfil = profilDao.getReferenceById(user.getProfil().getId());
+        user.setProfil(managedProfil);
         appUserDao.save(user);
     }
 
@@ -38,10 +43,9 @@ public class AppUserService {
     }
 
     // Retourne tous les utilisateurs d'un profil donné (GESTIONNAIRE, COLLABORATEUR...)
+    // findByProfilType utilise Spring Data pour générer la requête sans créer d'entité partielle
     public List<AppUser> findByProfil(String profilType) {
-        Profil profil = new Profil();
-        profil.setType(ProfilType.valueOf(profilType));
-        return appUserDao.findByProfil(profil);
+        return appUserDao.findByProfilType(ProfilType.valueOf(profilType));
     }
 
     public void updateEmail(Integer id, String newEmail) throws UserNotFoundException {

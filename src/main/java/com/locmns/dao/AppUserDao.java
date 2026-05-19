@@ -1,7 +1,7 @@
 package com.locmns.dao;
 
+import com.locmns.enums.ProfilType;
 import com.locmns.model.AppUser;
-import com.locmns.model.Profil;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,9 +15,9 @@ public interface AppUserDao extends JpaRepository<AppUser, Integer> {
     // Retourne un Optional : résultat potentiellement vide sans lever d'exception
     Optional<AppUser> findByEmail(String email);
 
-    // Retourne tous les utilisateurs ayant un profil donné
-    // Ex: findByProfil(GESTIONNAIRE) → liste de tous les gestionnaires
-    List<AppUser> findByProfil(Profil profil);
+    // Retourne tous les utilisateurs d'un type de profil donné
+    // Spring Data traduit en : WHERE u.profil.type = :type (JOIN sur profil)
+    List<AppUser> findByProfilType(ProfilType type);
 
     // Recherche textuelle insensible à la casse sur le nom, prénom ou email
     // @Query nécessaire car la condition est trop complexe pour être déduite du nom de méthode
