@@ -15,60 +15,91 @@ INSERT INTO profil (type) VALUES ('STAGIAIRE')     ON CONFLICT DO NOTHING;
 
 
 -- =============================================
--- 2. FAMILLES D'ÉQUIPEMENT
+-- 2. FAMILLES D'ÉQUIPEMENT (catégories fixes)
 -- =============================================
-INSERT INTO equipment_family (name_equipment_family) VALUES
-  ('Ordinateur portable'),
-  ('Tablette'),
-  ('Périphérique'),
-  ('Écran'),
-  ('Matériel audiovisuel');
+INSERT INTO equipment_family (name_equipment_family) VALUES ('PC')             ON CONFLICT DO NOTHING;
+INSERT INTO equipment_family (name_equipment_family) VALUES ('Écran')          ON CONFLICT DO NOTHING;
+INSERT INTO equipment_family (name_equipment_family) VALUES ('Casque VR')      ON CONFLICT DO NOTHING;
+INSERT INTO equipment_family (name_equipment_family) VALUES ('Vidéoprojecteur') ON CONFLICT DO NOTHING;
+INSERT INTO equipment_family (name_equipment_family) VALUES ('Périphérique')   ON CONFLICT DO NOTHING;
+INSERT INTO equipment_family (name_equipment_family) VALUES ('Autre')          ON CONFLICT DO NOTHING;
 
 
 -- =============================================
 -- 3. UTILISATEURS (2 gestionnaires, 5 collaborateurs, 3 intervenants, 2 stagiaires)
--- Mot de passe : admin123 / user123 (mock — pas de BCrypt pour l'instant)
+-- Mot de passe : admin123 / user123
 -- =============================================
-INSERT INTO app_user (email, name, lastname, password, profil_id) VALUES
+INSERT INTO app_user (email, name, lastname, password, created_at, profil_id) VALUES
   -- Gestionnaires
-  ('jean.martin@mns.fr',    'Jean',    'Martin',   'admin123', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
-  ('sophie.leblanc@mns.fr', 'Sophie',  'Leblanc',  'admin123', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
+  ('jean.martin@mns.fr',    'Jean',    'Martin',   'admin123', '2024-09-01 08:00:00', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
+  ('sophie.leblanc@mns.fr', 'Sophie',  'Leblanc',  'admin123', '2024-09-01 08:00:00', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
   -- Collaborateurs
-  ('thomas.dupont@mns.fr',  'Thomas',  'Dupont',   'user123',  (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('marie.leroy@mns.fr',    'Marie',   'Leroy',    'user123',  (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('lucas.bernard@mns.fr',  'Lucas',   'Bernard',  'user123',  (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('emma.petit@mns.fr',     'Emma',    'Petit',    'user123',  (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('nathan.durand@mns.fr',  'Nathan',  'Durand',   'user123',  (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('thomas.dupont@mns.fr',  'Thomas',  'Dupont',   'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('marie.leroy@mns.fr',    'Marie',   'Leroy',    'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('lucas.bernard@mns.fr',  'Lucas',   'Bernard',  'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('emma.petit@mns.fr',     'Emma',    'Petit',    'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('nathan.durand@mns.fr',  'Nathan',  'Durand',   'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
   -- Intervenants
-  ('pierre.moreau@mns.fr',  'Pierre',  'Moreau',   'user123',  (SELECT id FROM profil WHERE type = 'INTERVENANT')),
-  ('laura.simon@mns.fr',    'Laura',   'Simon',    'user123',  (SELECT id FROM profil WHERE type = 'INTERVENANT')),
-  ('hugo.michel@mns.fr',    'Hugo',    'Michel',   'user123',  (SELECT id FROM profil WHERE type = 'INTERVENANT')),
+  ('pierre.moreau@mns.fr',  'Pierre',  'Moreau',   'user123',  '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
+  ('laura.simon@mns.fr',    'Laura',   'Simon',    'user123',  '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
+  ('hugo.michel@mns.fr',    'Hugo',    'Michel',   'user123',  '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
   -- Stagiaires
-  ('camille.robert@mns.fr', 'Camille', 'Robert',   'user123',  (SELECT id FROM profil WHERE type = 'STAGIAIRE')),
-  ('alexis.laurent@mns.fr', 'Alexis',  'Laurent',  'user123',  (SELECT id FROM profil WHERE type = 'STAGIAIRE'));
+  ('camille.robert@mns.fr', 'Camille', 'Robert',   'user123',  '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE')),
+  ('alexis.laurent@mns.fr', 'Alexis',  'Laurent',  'user123',  '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE'));
 
 
 -- =============================================
--- 4. ÉQUIPEMENTS (12 équipements)
+-- 4. ÉQUIPEMENTS (3 par catégorie = 18 équipements)
 -- =============================================
 INSERT INTO equipment (reference, equipment_name, location, acquisition_date, equipment_family_id) VALUES
-  -- Ordinateurs portables
-  ('REF-PC-001', 'MacBook Pro M3',        'Salle B204',       '2023-09-01', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Ordinateur portable')),
-  ('REF-PC-002', 'Dell XPS 15',           'Salle A101',       '2023-06-15', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Ordinateur portable')),
-  ('REF-PC-003', 'Lenovo ThinkPad X1',    'Salle C302',       '2022-11-20', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Ordinateur portable')),
-  ('REF-PC-004', 'HP EliteBook 840',      'Salle B204',       '2022-03-10', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Ordinateur portable')),
-  -- Tablettes
-  ('REF-TAB-001', 'iPad Pro 12.9',        'Accueil',          '2023-01-15', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Tablette')),
-  ('REF-TAB-002', 'Samsung Galaxy Tab S9','Salle A101',       '2023-07-22', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Tablette')),
-  ('REF-TAB-003', 'Microsoft Surface Pro','Salle C302',       '2022-08-05', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Tablette')),
-  -- Périphériques
-  ('REF-PER-001', 'Magic Mouse Apple',    'Stock',            '2023-02-28', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Périphérique')),
-  ('REF-PER-002', 'Clavier Logitech MX',  'Stock',            '2023-02-28', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Périphérique')),
-  -- Écrans
-  ('REF-ECR-001', 'Dell UltraSharp 27"',  'Salle B204',       '2021-12-01', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Écran')),
-  ('REF-ECR-002', 'LG 4K 32"',            'Salle A101',       '2022-04-18', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Écran')),
-  -- Audiovisuel
-  ('REF-AV-001',  'Projecteur Epson EB',  'Salle de réunion', '2021-06-10', (SELECT id FROM equipment_family WHERE name_equipment_family = 'Matériel audiovisuel'));
+
+  -- PC (3)
+  ('REF-PC-001', 'MacBook Pro M3',          'Salle B204',       '2023-09-01',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'PC')),
+  ('REF-PC-002', 'Dell XPS 15',             'Salle A101',       '2023-06-15',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'PC')),
+  ('REF-PC-003', 'Lenovo ThinkPad X1',      'Salle C302',       '2022-11-20',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'PC')),
+
+  -- Écran (3)
+  ('REF-ECR-001', 'Dell UltraSharp 27"',    'Salle B204',       '2021-12-01',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Écran')),
+  ('REF-ECR-002', 'LG 4K 32"',              'Salle A101',       '2022-04-18',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Écran')),
+  ('REF-ECR-003', 'Samsung 24" FHD',        'Salle C302',       '2023-03-10',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Écran')),
+
+  -- Casque VR (3)
+  ('REF-VR-001', 'Meta Quest 3',            'Salle VR',         '2024-01-15',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Casque VR')),
+  ('REF-VR-002', 'HTC Vive Pro 2',          'Salle VR',         '2023-10-05',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Casque VR')),
+  ('REF-VR-003', 'PlayStation VR2',         'Salle VR',         '2024-03-20',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Casque VR')),
+
+  -- Vidéoprojecteur (3)
+  ('REF-VP-001', 'Epson EB-X51',            'Salle de réunion', '2021-06-10',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Vidéoprojecteur')),
+  ('REF-VP-002', 'BenQ MH550',              'Amphithéâtre',     '2022-09-01',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Vidéoprojecteur')),
+  ('REF-VP-003', 'Optoma HD28HDR',          'Salle B204',       '2023-05-15',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Vidéoprojecteur')),
+
+  -- Périphérique (3)
+  ('REF-PER-001', 'Magic Mouse Apple',      'Stock',            '2023-02-28',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Périphérique')),
+  ('REF-PER-002', 'Clavier Logitech MX',    'Stock',            '2023-02-28',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Périphérique')),
+  ('REF-PER-003', 'Webcam Logitech C920',   'Stock',            '2023-07-12',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Périphérique')),
+
+  -- Autre (3)
+  ('REF-AUT-001', 'Trépied caméra',         'Stock',            '2022-01-10',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Autre')),
+  ('REF-AUT-002', 'Rallonge multiprise 5m', 'Stock',            '2021-05-20',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Autre')),
+  ('REF-AUT-003', 'Valise de transport PC', 'Stock',            '2023-08-15',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Autre'));
 
 
 -- =============================================
@@ -79,23 +110,23 @@ INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'GESTIONNAIRE';
 
--- COLLABORATEUR : portables, tablettes, périphériques, écrans
+-- COLLABORATEUR : PC, Écran, Casque VR, Vidéoprojecteur, Périphérique
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'COLLABORATEUR'
-    AND ef.name_equipment_family IN ('Ordinateur portable', 'Tablette', 'Périphérique', 'Écran');
+    AND ef.name_equipment_family IN ('PC', 'Écran', 'Casque VR', 'Vidéoprojecteur', 'Périphérique');
 
--- INTERVENANT : portables, périphériques
+-- INTERVENANT : PC, Périphérique, Casque VR
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'INTERVENANT'
-    AND ef.name_equipment_family IN ('Ordinateur portable', 'Périphérique');
+    AND ef.name_equipment_family IN ('PC', 'Périphérique', 'Casque VR');
 
--- STAGIAIRE : tablettes, périphériques
+-- STAGIAIRE : Périphérique, Autre
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'STAGIAIRE'
-    AND ef.name_equipment_family IN ('Tablette', 'Périphérique');
+    AND ef.name_equipment_family IN ('Périphérique', 'Autre');
 
 
 -- =============================================
@@ -106,71 +137,100 @@ INSERT INTO characteristic (name) VALUES
   ('RAM'),
   ('Stockage'),
   ('Système d''exploitation'),
-  ('Résolution');
+  ('Résolution'),
+  ('Connectivité'),
+  ('Luminosité'),
+  ('Type de connexion');
 
 
 -- =============================================
 -- 7. EST_CONSTITUE — caractéristiques par famille
 -- =============================================
--- Ordinateur portable : Processeur, RAM, Stockage, OS
+-- PC : Processeur, RAM, Stockage, OS
 INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
   SELECT c.id, ef.id FROM characteristic c, equipment_family ef
-  WHERE ef.name_equipment_family = 'Ordinateur portable'
-    AND c.name IN ('Processeur', 'RAM', 'Stockage', 'Système d''exploitation');
-
--- Tablette : Processeur, RAM, Stockage, OS
-INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
-  SELECT c.id, ef.id FROM characteristic c, equipment_family ef
-  WHERE ef.name_equipment_family = 'Tablette'
+  WHERE ef.name_equipment_family = 'PC'
     AND c.name IN ('Processeur', 'RAM', 'Stockage', 'Système d''exploitation');
 
 -- Écran : Résolution
 INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
   SELECT c.id, ef.id FROM characteristic c, equipment_family ef
-  WHERE ef.name_equipment_family = 'Écran'
-    AND c.name = 'Résolution';
+  WHERE ef.name_equipment_family = 'Écran' AND c.name = 'Résolution';
+
+-- Périphérique : Connectivité
+INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
+  SELECT c.id, ef.id FROM characteristic c, equipment_family ef
+  WHERE ef.name_equipment_family = 'Périphérique' AND c.name = 'Connectivité';
+
+-- Vidéoprojecteur : Luminosité, Type de connexion
+INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
+  SELECT c.id, ef.id FROM characteristic c, equipment_family ef
+  WHERE ef.name_equipment_family = 'Vidéoprojecteur'
+    AND c.name IN ('Luminosité', 'Type de connexion');
 
 
 -- =============================================
 -- 8. VALEURS DE CARACTÉRISTIQUES
 -- =============================================
--- MacBook Pro M3
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('Apple M3 Pro', (SELECT id FROM characteristic WHERE name = 'Processeur'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('18 Go', (SELECT id FROM characteristic WHERE name = 'RAM'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('512 Go SSD', (SELECT id FROM characteristic WHERE name = 'Stockage'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('macOS Sonoma', (SELECT id FROM characteristic WHERE name = 'Système d''exploitation'));
+-- PC : MacBook Pro M3
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('Apple M3 Pro',      '2023-09-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'Processeur')),
+  ('18 Go',             '2023-09-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'RAM')),
+  ('512 Go SSD',        '2023-09-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'Stockage')),
+  ('macOS Sonoma',      '2023-09-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'Système d''exploitation'));
 
--- Dell XPS 15
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('Intel Core i7-13700H', (SELECT id FROM characteristic WHERE name = 'Processeur'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('16 Go', (SELECT id FROM characteristic WHERE name = 'RAM'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('1 To SSD', (SELECT id FROM characteristic WHERE name = 'Stockage'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('Windows 11 Pro', (SELECT id FROM characteristic WHERE name = 'Système d''exploitation'));
+-- PC : Dell XPS 15
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('Intel Core i7-13700H', '2023-06-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'Processeur')),
+  ('16 Go',                '2023-06-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'RAM')),
+  ('1 To SSD',             '2023-06-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'Stockage')),
+  ('Windows 11 Pro',       '2023-06-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'Système d''exploitation'));
 
--- iPad Pro
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('Apple M2', (SELECT id FROM characteristic WHERE name = 'Processeur'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('8 Go', (SELECT id FROM characteristic WHERE name = 'RAM'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('256 Go', (SELECT id FROM characteristic WHERE name = 'Stockage'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('iPadOS 17', (SELECT id FROM characteristic WHERE name = 'Système d''exploitation'));
+-- PC : Lenovo ThinkPad X1
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('Intel Core i5-1235U', '2022-11-20 00:00:00', (SELECT id FROM characteristic WHERE name = 'Processeur')),
+  ('8 Go',                '2022-11-20 00:00:00', (SELECT id FROM characteristic WHERE name = 'RAM')),
+  ('256 Go SSD',          '2022-11-20 00:00:00', (SELECT id FROM characteristic WHERE name = 'Stockage')),
+  ('Windows 10 Pro',      '2022-11-20 00:00:00', (SELECT id FROM characteristic WHERE name = 'Système d''exploitation'));
 
--- Dell UltraSharp 27"
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('2560x1440 (QHD)', (SELECT id FROM characteristic WHERE name = 'Résolution'));
+-- Écran : Dell UltraSharp 27"
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('2560x1440 (QHD)', '2021-12-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'Résolution'));
 
--- LG 4K 32"
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('3840x2160 (4K UHD)', (SELECT id FROM characteristic WHERE name = 'Résolution'));
+-- Écran : LG 4K 32"
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('3840x2160 (4K UHD)', '2022-04-18 00:00:00', (SELECT id FROM characteristic WHERE name = 'Résolution'));
+
+-- Écran : Samsung 24"
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('1920x1080 (FHD)', '2023-03-10 00:00:00', (SELECT id FROM characteristic WHERE name = 'Résolution'));
+
+-- Périphérique : Magic Mouse
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('Bluetooth 5.0', '2023-02-28 00:00:00', (SELECT id FROM characteristic WHERE name = 'Connectivité'));
+
+-- Périphérique : Clavier Logitech MX
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('USB + Bluetooth', '2023-02-28 00:00:00', (SELECT id FROM characteristic WHERE name = 'Connectivité'));
+
+-- Périphérique : Webcam Logitech
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('USB-A', '2023-07-12 00:00:00', (SELECT id FROM characteristic WHERE name = 'Connectivité'));
+
+-- Vidéoprojecteur : Epson EB-X51
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('3600 lumens',       '2021-06-10 00:00:00', (SELECT id FROM characteristic WHERE name = 'Luminosité')),
+  ('HDMI / VGA / USB',  '2021-06-10 00:00:00', (SELECT id FROM characteristic WHERE name = 'Type de connexion'));
+
+-- Vidéoprojecteur : BenQ MH550
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('3500 lumens',           '2022-09-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'Luminosité')),
+  ('HDMI x2 / VGA / USB-A', '2022-09-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'Type de connexion'));
+
+-- Vidéoprojecteur : Optoma HD28HDR
+INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
+  ('3000 lumens',      '2023-05-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'Luminosité')),
+  ('HDMI / MHL / USB', '2023-05-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'Type de connexion'));
 
 
 -- =============================================
@@ -188,11 +248,11 @@ INSERT INTO possede (characteristic_value_id, equipment_id)
   WHERE e.reference = 'REF-PC-002'
     AND cv.value IN ('Intel Core i7-13700H', '16 Go', '1 To SSD', 'Windows 11 Pro');
 
--- iPad Pro
+-- Lenovo ThinkPad X1
 INSERT INTO possede (characteristic_value_id, equipment_id)
   SELECT cv.id, e.id FROM characteristic_value cv, equipment e
-  WHERE e.reference = 'REF-TAB-001'
-    AND cv.value IN ('Apple M2', '8 Go', '256 Go', 'iPadOS 17');
+  WHERE e.reference = 'REF-PC-003'
+    AND cv.value IN ('Intel Core i5-1235U', '8 Go', '256 Go SSD', 'Windows 10 Pro');
 
 -- Dell UltraSharp
 INSERT INTO possede (characteristic_value_id, equipment_id)
@@ -204,207 +264,366 @@ INSERT INTO possede (characteristic_value_id, equipment_id)
   SELECT cv.id, e.id FROM characteristic_value cv, equipment e
   WHERE e.reference = 'REF-ECR-002' AND cv.value = '3840x2160 (4K UHD)';
 
+-- Samsung 24"
+INSERT INTO possede (characteristic_value_id, equipment_id)
+  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
+  WHERE e.reference = 'REF-ECR-003' AND cv.value = '1920x1080 (FHD)';
+
+-- Magic Mouse
+INSERT INTO possede (characteristic_value_id, equipment_id)
+  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
+  WHERE e.reference = 'REF-PER-001' AND cv.value = 'Bluetooth 5.0';
+
+-- Clavier Logitech MX
+INSERT INTO possede (characteristic_value_id, equipment_id)
+  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
+  WHERE e.reference = 'REF-PER-002' AND cv.value = 'USB + Bluetooth';
+
+-- Webcam Logitech
+INSERT INTO possede (characteristic_value_id, equipment_id)
+  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
+  WHERE e.reference = 'REF-PER-003' AND cv.value = 'USB-A';
+
+-- Epson EB-X51
+INSERT INTO possede (characteristic_value_id, equipment_id)
+  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
+  WHERE e.reference = 'REF-VP-001' AND cv.value IN ('3600 lumens', 'HDMI / VGA / USB');
+
+-- BenQ MH550
+INSERT INTO possede (characteristic_value_id, equipment_id)
+  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
+  WHERE e.reference = 'REF-VP-002' AND cv.value IN ('3500 lumens', 'HDMI x2 / VGA / USB-A');
+
+-- Optoma HD28HDR
+INSERT INTO possede (characteristic_value_id, equipment_id)
+  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
+  WHERE e.reference = 'REF-VP-003' AND cv.value IN ('3000 lumens', 'HDMI / MHL / USB');
+
 
 -- =============================================
--- 10. EMPRUNTS (12 emprunts, tous les statuts représentés)
+-- 10. STATUTS ÉQUIPEMENT (incidents / réparations actifs)
 -- =============================================
--- TERMINE (emprunt passé, retourné)
+-- PC-003 en réparation (batterie)
+INSERT INTO status_equipment (description_status, status_equipment_type, begin_status_date, equipment_id) VALUES
+  ('Batterie défectueuse — envoyé en réparation chez le prestataire.', 'UNDER_REPAIR',
+   '2026-05-10 09:00:00',
+   (SELECT id FROM equipment WHERE reference = 'REF-PC-003'));
+
+-- VR-002 hors service (lentille fissurée)
+INSERT INTO status_equipment (description_status, status_equipment_type, begin_status_date, equipment_id) VALUES
+  ('Lentille gauche fissurée suite à une chute — équipement hors service.', 'OUT_OF_SERVICE',
+   '2026-04-22 14:00:00',
+   (SELECT id FROM equipment WHERE reference = 'REF-VR-002'));
+
+-- VP-001 en réparation (lampe en fin de vie)
+INSERT INTO status_equipment (description_status, status_equipment_type, begin_status_date, equipment_id) VALUES
+  ('Lampe du projecteur en fin de vie — remplacement commandé.', 'UNDER_REPAIR',
+   '2026-05-05 10:00:00',
+   (SELECT id FROM equipment WHERE reference = 'REF-VP-001'));
+
+-- Incidents résolus (end_status_date renseignée)
+INSERT INTO status_equipment (description_status, status_equipment_type, begin_status_date, end_status_date, equipment_id) VALUES
+  ('Connecteur HDMI défaillant. Remplacement du câble interne.', 'UNDER_REPAIR',
+   '2025-09-10 08:00:00', '2025-09-20 09:00:00',
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
+
+INSERT INTO status_equipment (description_status, status_equipment_type, begin_status_date, end_status_date, equipment_id) VALUES
+  ('Panne clavier — touche Entrée bloquée. Réparé en interne.', 'UNDER_REPAIR',
+   '2025-11-05 10:00:00', '2025-11-15 12:00:00',
+   (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
+
+INSERT INTO status_equipment (description_status, status_equipment_type, begin_status_date, end_status_date, equipment_id) VALUES
+  ('Souris inopérante — capteur laser HS. Remplacée.', 'OUT_OF_SERVICE',
+   '2025-10-01 09:00:00', '2025-10-10 16:00:00',
+   (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
+
+
+-- =============================================
+-- 11. EMPRUNTS
+-- =============================================
+
+-- -----------------------------------------------
+-- A. EMPRUNTS PASSÉS — TERMINE (pour tous les users)
+-- -----------------------------------------------
+-- Thomas Dupont — PC-001
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2024-09-02 08:00:00', '2024-09-06 18:00:00', '2024-09-06 17:30:00', 'TERMINE',
-   '2024-09-06 17:30:00',
+  ('2025-09-02 08:00:00', '2025-09-09 18:00:00', '2025-09-09 17:30:00', 'TERMINE',
+   '2025-09-09 17:30:00',
    (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
 
+-- Marie Leroy — ECR-002
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2024-10-14 09:00:00', '2024-10-18 18:00:00', '2024-10-17 16:00:00', 'TERMINE',
-   '2024-10-17 16:00:00',
+  ('2025-10-06 09:00:00', '2025-10-10 18:00:00', '2025-10-09 16:00:00', 'TERMINE',
+   '2025-10-09 16:00:00',
    (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-TAB-001'));
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-002'));
 
+-- Lucas Bernard — PC-002 (avec incident BREAKDOWN)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2024-11-04 08:30:00', '2024-11-08 18:00:00', '2024-11-08 18:00:00', 'TERMINE',
-   '2024-11-08 18:00:00',
+  ('2025-10-20 08:30:00', '2025-10-24 18:00:00', '2025-10-24 18:00:00', 'TERMINE',
+   '2025-10-24 18:00:00',
    (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr'),
-   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-PC-003'));
-
-INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2024-12-09 09:00:00', '2024-12-13 18:00:00', '2024-12-12 14:00:00', 'TERMINE',
-   '2024-12-12 14:00:00',
-   (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr'),
-   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
-
--- IN_PROGRESS (emprunt en cours, validé)
-INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-05 08:00:00', '2025-05-16 18:00:00', NULL, 'IN_PROGRESS',
-   '2025-05-04 15:00:00',
-   (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PC-002'));
 
+-- Emma Petit — VR-001
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-06 09:00:00', '2025-05-20 18:00:00', NULL, 'IN_PROGRESS',
-   '2025-05-05 10:30:00',
-   (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
+  ('2025-11-03 09:00:00', '2025-11-07 18:00:00', '2025-11-07 17:00:00', 'TERMINE',
+   '2025-11-07 17:00:00',
+   (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-TAB-002'));
+   (SELECT id FROM equipment WHERE reference = 'REF-VR-001'));
 
+-- Nathan Durand — PER-002
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-07 08:00:00', '2025-05-14 18:00:00', NULL, 'IN_PROGRESS',
-   '2025-05-06 09:00:00',
-   (SELECT id FROM app_user WHERE email = 'camille.robert@mns.fr'),
+  ('2025-11-17 08:00:00', '2025-11-21 18:00:00', '2025-11-21 16:30:00', 'TERMINE',
+   '2025-11-21 16:30:00',
+   (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-002'));
 
+-- Pierre Moreau — VP-002 (avec EARLY_RETURN)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-08 10:00:00', '2025-05-22 18:00:00', NULL, 'IN_PROGRESS',
-   '2025-05-07 14:00:00',
+  ('2025-12-01 09:00:00', '2025-12-05 18:00:00', '2025-12-03 14:00:00', 'TERMINE',
+   '2025-12-03 14:00:00',
+   (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-VP-002'));
+
+-- Laura Simon — PER-001
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2025-12-08 08:00:00', '2025-12-12 18:00:00', '2025-12-12 18:00:00', 'TERMINE',
+   '2025-12-12 18:00:00',
+   (SELECT id FROM app_user WHERE email = 'laura.simon@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
+
+-- Hugo Michel — PC-001 (avec BREAKDOWN)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-01-12 08:00:00', '2026-01-16 18:00:00', '2026-01-16 18:00:00', 'TERMINE',
+   '2026-01-16 18:00:00',
    (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-PC-004'));
+   (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
 
--- VALID (demande en attente de validation)
+-- Camille Robert — AUT-001
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-19 08:00:00', '2025-05-23 18:00:00', NULL, 'VALID',
-   '2025-05-12 08:00:00',
+  ('2026-01-20 09:00:00', '2026-01-24 18:00:00', '2026-01-24 17:00:00', 'TERMINE',
+   '2026-01-24 17:00:00',
+   (SELECT id FROM app_user WHERE email = 'camille.robert@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-AUT-001'));
+
+-- Alexis Laurent — AUT-002
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-02-03 08:00:00', '2026-02-07 18:00:00', '2026-02-07 18:00:00', 'TERMINE',
+   '2026-02-07 18:00:00',
    (SELECT id FROM app_user WHERE email = 'alexis.laurent@mns.fr'),
-   NULL,
-   (SELECT id FROM equipment WHERE reference = 'REF-TAB-003'));
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-AUT-002'));
 
+-- Thomas Dupont — 2ème emprunt, ECR-001
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-20 09:00:00', '2025-05-27 18:00:00', NULL, 'VALID',
-   '2025-05-12 09:30:00',
+  ('2026-02-16 09:00:00', '2026-02-20 18:00:00', '2026-02-20 17:30:00', 'TERMINE',
+   '2026-02-20 17:30:00',
+   (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
+
+-- Marie Leroy — VR-001 (avec EXTENSION)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-03-02 08:00:00', '2026-03-06 18:00:00', '2026-03-07 10:00:00', 'TERMINE',
+   '2026-03-07 10:00:00',
+   (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-VR-001'));
+
+-- Lucas Bernard — VP-003
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-03-16 09:00:00', '2026-03-20 18:00:00', '2026-03-20 18:00:00', 'TERMINE',
+   '2026-03-20 18:00:00',
+   (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-VP-003'));
+
+-- -----------------------------------------------
+-- B. EMPRUNTS EN RETARD — IN_PROGRESS avec end_date dépassée
+-- -----------------------------------------------
+-- Emma Petit — ECR-003 (end_date dépassée → retard)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-04-28 08:00:00', '2026-05-05 18:00:00', NULL, 'IN_PROGRESS',
+   '2026-04-25 10:00:00',
+   (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-003'));
+
+-- Hugo Michel — PER-003 (end_date dépassée → retard)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-01 09:00:00', '2026-05-08 18:00:00', NULL, 'IN_PROGRESS',
+   '2026-04-29 14:00:00',
+   (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PER-003'));
+
+-- -----------------------------------------------
+-- C. EMPRUNTS EN COURS — IN_PROGRESS (non en retard, end_date >= aujourd'hui)
+-- -----------------------------------------------
+-- Thomas Dupont — PC-002
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-12 08:00:00', '2026-05-23 18:00:00', NULL, 'IN_PROGRESS',
+   '2026-05-11 15:00:00',
+   (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PC-002'));
+
+-- Nathan Durand — VR-003
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-13 09:00:00', '2026-05-27 18:00:00', NULL, 'IN_PROGRESS',
+   '2026-05-12 10:30:00',
+   (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-VR-003'));
+
+-- Pierre Moreau — PER-002
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-14 08:00:00', '2026-05-21 18:00:00', NULL, 'IN_PROGRESS',
+   '2026-05-13 09:00:00',
+   (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PER-002'));
+
+-- -----------------------------------------------
+-- D. EMPRUNTS FUTURS — VALID (begin_date dans le futur, approuvés)
+-- -----------------------------------------------
+-- Camille Robert — AUT-003
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-20 08:00:00', '2026-05-22 18:00:00', NULL, 'VALID',
+   '2026-05-14 08:00:00',
+   (SELECT id FROM app_user WHERE email = 'camille.robert@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-AUT-003'));
+
+-- Laura Simon — PC-001
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-26 09:00:00', '2026-05-30 18:00:00', NULL, 'VALID',
+   '2026-05-14 09:30:00',
    (SELECT id FROM app_user WHERE email = 'laura.simon@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
+
+-- Alexis Laurent — VP-002
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-06-02 08:00:00', '2026-06-06 18:00:00', NULL, 'VALID',
+   '2026-05-15 10:00:00',
+   (SELECT id FROM app_user WHERE email = 'alexis.laurent@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-VP-002'));
+
+-- -----------------------------------------------
+-- E. DEMANDES EN ATTENTE — VALID sans validator
+-- -----------------------------------------------
+-- Marie Leroy — ECR-002
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-19 08:00:00', '2026-05-23 18:00:00', NULL, 'VALID',
+   '2026-05-15 08:00:00',
+   (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
    NULL,
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-002'));
 
--- INVALID (refusé)
+-- -----------------------------------------------
+-- F. EMPRUNTS REFUSÉS
+-- -----------------------------------------------
+-- Thomas Dupont — VP-001 (refusé, équipement en réparation)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-04-21 08:00:00', '2025-04-25 18:00:00', NULL, 'INVALID',
-   '2025-04-18 11:00:00',
+  ('2026-05-20 08:00:00', '2026-05-24 18:00:00', NULL, 'INVALID',
+   '2026-05-14 11:00:00',
    (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-AV-001'));
-
-INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-01 09:00:00', '2025-05-05 18:00:00', NULL, 'INVALID',
-   '2025-04-29 10:00:00',
-   (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
-   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
-
-
--- =============================================
--- 11. STATUTS ÉQUIPEMENT (incidents / réparations)
--- =============================================
--- Équipement actuellement hors service
-INSERT INTO status_equipment (description_status, status_equipment_type, equipment_id) VALUES
-  ('Écran fissuré suite à une chute signalée par l''utilisateur.', 'OUT_OF_SERVICE',
-   (SELECT id FROM equipment WHERE reference = 'REF-TAB-003'));
-
--- Équipement en cours de réparation
-INSERT INTO status_equipment (description_status, status_equipment_type, equipment_id) VALUES
-  ('Batterie défectueuse — envoyé en réparation chez le prestataire.', 'UNDER_REPAIR',
-   (SELECT id FROM equipment WHERE reference = 'REF-PC-003'));
-
--- Incident résolu (endStatusDate renseignée)
-INSERT INTO status_equipment (description_status, status_equipment_type, end_status_date, equipment_id) VALUES
-  ('Panne clavier — touche Entrée bloquée. Réparé en interne.', 'UNDER_REPAIR',
-   '2024-11-15 12:00:00',
-   (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
-
-INSERT INTO status_equipment (description_status, status_equipment_type, end_status_date, equipment_id) VALUES
-  ('Connecteur HDMI défaillant. Remplacement du câble interne.', 'UNDER_REPAIR',
-   '2025-02-20 09:00:00',
-   (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
-
-INSERT INTO status_equipment (description_status, status_equipment_type, end_status_date, equipment_id) VALUES
-  ('Souris inopérante — capteur laser HS. Mise au rebut.', 'OUT_OF_SERVICE',
-   '2025-01-10 16:00:00',
-   (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
-
-INSERT INTO status_equipment (description_status, status_equipment_type, equipment_id) VALUES
-  ('Lampe du projecteur en fin de vie — remplacement commandé.', 'UNDER_REPAIR',
-   (SELECT id FROM equipment WHERE reference = 'REF-AV-001'));
+   (SELECT id FROM equipment WHERE reference = 'REF-VP-001'));
 
 
 -- =============================================
 -- 12. ÉVÉNEMENTS (liés aux emprunts)
 -- =============================================
--- BREAKDOWN — signalement de panne pendant un emprunt
-INSERT INTO event (description, type, loan_id) VALUES
+-- BREAKDOWN — Lucas Bernard sur PC-002
+INSERT INTO event (description, created_at, type, loan_id) VALUES
   ('Panne signalée : le laptop ne s''allume plus après une mise à jour forcée.',
-   'BREAKDOWN',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr')
-    AND status_type = 'TERMINE' LIMIT 1));
+   '2025-10-22 10:00:00', 'BREAKDOWN',
+   (SELECT id FROM loan
+    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr')
+      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-PC-002')
+    LIMIT 1));
 
-INSERT INTO event (description, type, loan_id) VALUES
-  ('Écran fissuré lors du transport — signalement par l''emprunteur.',
-   'BREAKDOWN',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'camille.robert@mns.fr') LIMIT 1));
+-- BREAKDOWN — Hugo Michel sur PC-001
+INSERT INTO event (description, created_at, type, loan_id) VALUES
+  ('Panne signalée : tablette ne répond plus après mise en veille prolongée.',
+   '2026-01-14 11:00:00', 'BREAKDOWN',
+   (SELECT id FROM loan
+    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr')
+      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-PC-001')
+    LIMIT 1));
 
--- EARLY_RETURN — retour anticipé
-INSERT INTO event (description, reading_date, type, loan_id) VALUES
+-- EARLY_RETURN — Pierre Moreau sur VP-002
+INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
+  ('Retour anticipé — conférence annulée.',
+   '2025-12-03 14:00:00', '2025-12-03 14:00:00', 'EARLY_RETURN',
+   (SELECT id FROM loan
+    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr')
+      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-VP-002')
+    LIMIT 1));
+
+-- EARLY_RETURN — Marie Leroy sur ECR-002
+INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
   ('Retour anticipé — mission terminée plus tôt que prévu.',
-   '2024-10-18 09:00:00',
-   'EARLY_RETURN',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr')
-    AND status_type = 'TERMINE' LIMIT 1));
+   '2025-10-09 10:00:00', '2025-10-09 10:00:00', 'EARLY_RETURN',
+   (SELECT id FROM loan
+    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr')
+      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-ECR-002')
+    LIMIT 1));
 
-INSERT INTO event (description, reading_date, type, loan_id) VALUES
-  ('Retour anticipé — équipement non utilisé finalement.',
-   '2024-12-13 10:00:00',
-   'EARLY_RETURN',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr') LIMIT 1));
+-- EXTENSION — Marie Leroy sur VR-001
+INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
+  ('Demande de prolongation d''un jour — présentation client reportée.',
+   '2026-03-06 09:00:00', '2026-03-06 09:00:00', 'EXTENSION',
+   (SELECT id FROM loan
+    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr')
+      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-VR-001')
+    LIMIT 1));
 
--- EXTENSION — demande de prolongation
-INSERT INTO event (description, type, loan_id) VALUES
-  ('Demande de prolongation de 5 jours — projet en cours non terminé.',
-   'EXTENSION',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr') LIMIT 1));
+-- EXTENSION — Thomas Dupont sur PC-002 (en cours)
+INSERT INTO event (description, created_at, type, loan_id) VALUES
+  ('Demande de prolongation de 3 jours — projet en cours non terminé.',
+   '2026-05-14 09:00:00', 'EXTENSION',
+   (SELECT id FROM loan
+    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr')
+      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-PC-002')
+    LIMIT 1));
 
-INSERT INTO event (description, type, loan_id) VALUES
-  ('Demande de prolongation d''une semaine — formation reportée.',
-   'EXTENSION',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr') LIMIT 1));
-
-INSERT INTO event (description, reading_date, type, loan_id) VALUES
-  ('Prolongation accordée — présentation client reportée au vendredi.',
-   '2024-09-04 11:00:00',
-   'EXTENSION',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr')
-    AND status_type = 'TERMINE' LIMIT 1));
-
-INSERT INTO event (description, type, loan_id) VALUES
-  ('Demande de prolongation de 3 jours — livrable en attente de validation.',
-   'EXTENSION',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr') LIMIT 1));
-
-INSERT INTO event (description, type, loan_id) VALUES
-  ('Panne signalée : tablette ne répond plus au tactile.',
-   'BREAKDOWN',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr') LIMIT 1));
-
-INSERT INTO event (description, reading_date, type, loan_id) VALUES
-  ('Retour anticipé — congé maladie.',
-   '2024-11-07 08:30:00',
-   'EARLY_RETURN',
-   (SELECT id FROM loan WHERE requester_id = (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr')
-    AND status_type = 'TERMINE' LIMIT 1));
+-- BREAKDOWN — Emma Petit sur ECR-003 (en retard)
+INSERT INTO event (description, created_at, type, loan_id) VALUES
+  ('Incident signalé : pixel mort détecté sur l''angle inférieur droit.',
+   '2026-05-02 11:00:00', 'BREAKDOWN',
+   (SELECT id FROM loan
+    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr')
+      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-ECR-003')
+    LIMIT 1));
 
 
 -- =============================================
 -- 13. DOCUMENTS
 -- =============================================
-INSERT INTO doc (title, url) VALUES
-  ('Manuel utilisateur MacBook Pro M3',          'https://support.apple.com/macbook-pro'),
-  ('Guide de démarrage iPad Pro',                'https://support.apple.com/ipad-pro'),
-  ('Documentation Dell XPS 15',                  'https://www.dell.com/support/xps15'),
-  ('Charte d''utilisation du matériel MNS',      'https://intranet.mns.fr/charte-materiel'),
-  ('Procédure de signalement d''incident',       'https://intranet.mns.fr/procedure-incident');
+INSERT INTO doc (title, url, added_date) VALUES
+  ('Manuel utilisateur MacBook Pro M3',         'https://support.apple.com/macbook-pro',          '2023-09-01 00:00:00'),
+  ('Documentation Dell XPS 15',                 'https://www.dell.com/support/xps15',             '2023-06-15 00:00:00'),
+  ('Guide Logitech MX Keys',                    'https://www.logitech.com/support/mx-keys',       '2023-02-28 00:00:00'),
+  ('Fiche technique Dell UltraSharp 27"',       'https://www.dell.com/support/ultrasharp27',      '2021-12-01 00:00:00'),
+  ('Manuel Meta Quest 3',                       'https://www.meta.com/support/quest3',            '2024-01-15 00:00:00'),
+  ('Guide Epson EB-X51',                        'https://www.epson.fr/support/eb-series',         '2021-06-10 00:00:00'),
+  ('Charte d''utilisation du matériel MNS',     'https://intranet.mns.fr/charte-materiel',        '2024-09-01 00:00:00'),
+  ('Procédure de signalement d''incident',      'https://intranet.mns.fr/procedure-incident',     '2024-09-01 00:00:00');
 
 
 -- =============================================
@@ -416,130 +635,7 @@ INSERT INTO fait_reference (doc_id, equipment_id)
 
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
-  WHERE d.title = 'Guide de démarrage iPad Pro' AND e.reference = 'REF-TAB-001';
-
-INSERT INTO fait_reference (doc_id, equipment_id)
-  SELECT d.id, e.id FROM doc d, equipment e
   WHERE d.title = 'Documentation Dell XPS 15' AND e.reference = 'REF-PC-002';
-
--- La charte s'applique à tous les ordinateurs portables
-INSERT INTO fait_reference (doc_id, equipment_id)
-  SELECT d.id, e.id FROM doc d, equipment e
-  WHERE d.title = 'Charte d''utilisation du matériel MNS'
-    AND e.reference IN ('REF-PC-001', 'REF-PC-002', 'REF-PC-003', 'REF-PC-004');
-
--- La procédure incident s'applique à tout le parc
-INSERT INTO fait_reference (doc_id, equipment_id)
-  SELECT d.id, e.id FROM doc d, equipment e
-  WHERE d.title = 'Procédure de signalement d''incident';
-
-
--- =============================================
--- COMPLÉMENTS — 1 entrée de chaque par famille manquante
--- =============================================
-
--- -----------------------------------------------
--- A. CARACTÉRISTIQUES manquantes
--- -----------------------------------------------
-INSERT INTO characteristic (name) VALUES
-  ('Connectivité'),
-  ('Luminosité'),
-  ('Type de connexion');
-
--- Périphérique ← Connectivité
-INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
-  SELECT c.id, ef.id FROM characteristic c, equipment_family ef
-  WHERE ef.name_equipment_family = 'Périphérique' AND c.name = 'Connectivité';
-
--- Matériel audiovisuel ← Luminosité + Type de connexion
-INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
-  SELECT c.id, ef.id FROM characteristic c, equipment_family ef
-  WHERE ef.name_equipment_family = 'Matériel audiovisuel'
-    AND c.name IN ('Luminosité', 'Type de connexion');
-
--- -----------------------------------------------
--- B. VALEURS DE CARACTÉRISTIQUES manquantes
--- -----------------------------------------------
--- Magic Mouse
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('Bluetooth 5.0', (SELECT id FROM characteristic WHERE name = 'Connectivité'));
-
--- Clavier Logitech MX
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('USB + Bluetooth', (SELECT id FROM characteristic WHERE name = 'Connectivité'));
-
--- Projecteur Epson
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('3600 lumens', (SELECT id FROM characteristic WHERE name = 'Luminosité'));
-INSERT INTO characteristic_value (value, characteristic_id) VALUES
-  ('HDMI / VGA / USB', (SELECT id FROM characteristic WHERE name = 'Type de connexion'));
-
--- Possède — Magic Mouse
-INSERT INTO possede (characteristic_value_id, equipment_id)
-  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
-  WHERE e.reference = 'REF-PER-001' AND cv.value = 'Bluetooth 5.0';
-
--- Possède — Clavier Logitech
-INSERT INTO possede (characteristic_value_id, equipment_id)
-  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
-  WHERE e.reference = 'REF-PER-002' AND cv.value = 'USB + Bluetooth';
-
--- Possède — Projecteur
-INSERT INTO possede (characteristic_value_id, equipment_id)
-  SELECT cv.id, e.id FROM characteristic_value cv, equipment e
-  WHERE e.reference = 'REF-AV-001' AND cv.value IN ('3600 lumens', 'HDMI / VGA / USB');
-
-
--- -----------------------------------------------
--- C. EMPRUNTS manquants (Écran TERMINE + Audiovisuel IN_PROGRESS)
--- -----------------------------------------------
--- Écran — TERMINE
-INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-02-03 08:00:00', '2025-02-07 18:00:00', '2025-02-07 17:00:00', 'TERMINE',
-   '2025-02-07 17:00:00',
-   (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr'),
-   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
-
--- Audiovisuel — IN_PROGRESS
-INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-05-09 08:00:00', '2025-05-16 18:00:00', NULL, 'IN_PROGRESS',
-   '2025-05-08 11:00:00',
-   (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr'),
-   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-AV-001'));
-
-
--- -----------------------------------------------
--- D. ÉVÉNEMENTS manquants (Écran + Audiovisuel)
--- -----------------------------------------------
--- Événement sur l'emprunt Écran TERMINE
-INSERT INTO event (description, reading_date, type, loan_id) VALUES
-  ('Retour anticipé — télétravail annulé, écran restitué avant terme.',
-   '2025-02-07 11:00:00',
-   'EARLY_RETURN',
-   (SELECT id FROM loan
-    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr')
-      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-ECR-001')
-    LIMIT 1));
-
--- Événement sur l'emprunt Audiovisuel IN_PROGRESS
-INSERT INTO event (description, type, loan_id) VALUES
-  ('Demande de prolongation de 2 jours — présentation repoussée.',
-   'EXTENSION',
-   (SELECT id FROM loan
-    WHERE requester_id = (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr')
-      AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-AV-001')
-    LIMIT 1));
-
-
--- -----------------------------------------------
--- E. DOCUMENTS manquants (Périphérique, Écran, Audiovisuel)
--- -----------------------------------------------
-INSERT INTO doc (title, url) VALUES
-  ('Guide Logitech MX Keys',              'https://www.logitech.com/support/mx-keys'),
-  ('Fiche technique Dell UltraSharp 27"', 'https://www.dell.com/support/ultrasharp27'),
-  ('Manuel projecteur Epson EB',          'https://www.epson.fr/support/eb-series');
 
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
@@ -551,4 +647,19 @@ INSERT INTO fait_reference (doc_id, equipment_id)
 
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
-  WHERE d.title = 'Manuel projecteur Epson EB' AND e.reference = 'REF-AV-001';
+  WHERE d.title = 'Manuel Meta Quest 3' AND e.reference = 'REF-VR-001';
+
+INSERT INTO fait_reference (doc_id, equipment_id)
+  SELECT d.id, e.id FROM doc d, equipment e
+  WHERE d.title = 'Guide Epson EB-X51' AND e.reference = 'REF-VP-001';
+
+-- La charte s'applique à tous les PC
+INSERT INTO fait_reference (doc_id, equipment_id)
+  SELECT d.id, e.id FROM doc d, equipment e
+  WHERE d.title = 'Charte d''utilisation du matériel MNS'
+    AND e.reference IN ('REF-PC-001', 'REF-PC-002', 'REF-PC-003');
+
+-- La procédure incident s'applique à tout le parc
+INSERT INTO fait_reference (doc_id, equipment_id)
+  SELECT d.id, e.id FROM doc d, equipment e
+  WHERE d.title = 'Procédure de signalement d''incident';
