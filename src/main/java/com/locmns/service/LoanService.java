@@ -22,7 +22,7 @@ public class LoanService {
     private final LoanDao      loanDao;
     private final AppUserDao   appUserDao;
     private final EquipmentDao equipmentDao;
-    
+
     public List<Loan> findAll() {
         return loanDao.findAll();
     }
@@ -80,6 +80,10 @@ public class LoanService {
         if (!isAllowed) {
             throw new UnauthorizedEquipmentFamilyException();
         }
+
+        // Remplace les POJOs détachés par les entités managées pour éviter l'erreur JPA
+        loan.setRequester(requester);
+        loan.setEquipment(equipment);
 
         loan.setStatusType(StatusLoanType.IN_PROGRESS);
         loan.setStatusDate(LocalDateTime.now());
