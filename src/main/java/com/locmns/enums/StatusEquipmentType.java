@@ -2,6 +2,6 @@ package com.locmns.enums;
 
 public enum StatusEquipmentType {
     OUT_OF_SERVICE,
-    UNDER_REPAIR
-
+    UNDER_REPAIR,
+    AVAILABLE
 }
