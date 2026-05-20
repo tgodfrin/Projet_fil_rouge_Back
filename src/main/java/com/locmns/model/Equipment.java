@@ -52,7 +52,7 @@ public class Equipment {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    @JsonView(EquipmentView.class)
+    @JsonView({EquipmentView.class, LoanView.class})
     protected EquipmentFamily equipmentFamily;
 
     // Champ calculé — PAS en base de données (@Transient = ignoré par JPA/Hibernate)
