@@ -1,5 +1,7 @@
 package com.locmns.service;
 
+import com.locmns.dao.CharacteristicValueDao;
+import com.locmns.dao.DocDao;
 import com.locmns.dao.EquipmentDao;
 import com.locmns.dao.LoanDao;
 import com.locmns.dao.StatusEquipmentDao;
@@ -10,6 +12,7 @@ import com.locmns.model.StatusEquipment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,8 @@ public class EquipmentService {
     private final EquipmentDao equipmentDao;
     private final LoanDao loanDao;
     private final StatusEquipmentDao statusEquipmentDao;
+    private final CharacteristicValueDao characteristicValueDao;
+    private final DocDao docDao;
 
     // Récupère tous les équipements et calcule leur statut avant de les retourner
     public List<Equipment> findAll() {
@@ -75,10 +80,19 @@ public class EquipmentService {
     }
 
 
+    @Transactional
     public void delete(Integer id) throws EquipmentNotFoundException {
-        if (!equipmentDao.existsById(id)) {
-            throw new EquipmentNotFoundException();
-        }
+        Equipment equipment = equipmentDao.findById(id)
+                .orElseThrow(EquipmentNotFoundException::new);
+
+        // Suppression en cascade (ordre FK) :
+        // 1. Tables de jointure ManyToMany
+        characteristicValueDao.deleteJoinByEquipmentId(id);
+        docDao.deleteJoinByEquipmentId(id);
+        // 2. Entités avec FK directe vers equipment
+        statusEquipmentDao.deleteByEquipment(equipment);
+        loanDao.deleteByEquipment(equipment);
+        // 3. L'équipement lui-même
         equipmentDao.deleteById(id);
     }
 

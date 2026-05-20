@@ -35,4 +35,7 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     // Utilisé par EquipmentService pour calculer le statut EN_PRET (loan IN_PROGRESS actif)
     // exists... est plus léger que find... car renvoie un boolean sans charger l'objet entier
     boolean existsByEquipmentAndStatusType(Equipment equipment, StatusLoanType statusType);
+
+    // Supprime tous les emprunts liés à un équipement (utilisé avant suppression de l'équipement)
+    void deleteByEquipment(Equipment equipment);
 }

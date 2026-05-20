@@ -15,4 +15,7 @@ public interface StatusEquipmentDao extends JpaRepository<StatusEquipment, Integ
     // Retourne le statut technique actuellement actif d'un équipement (endStatusDate IS NULL = toujours en cours)
     // Si résultat vide → pas de problème technique actif sur cet équipement
     List<StatusEquipment> findByEquipmentAndEndStatusDateIsNull(Equipment equipment);
+
+    // Supprime tous les statuts techniques liés à un équipement (utilisé avant suppression de l'équipement)
+    void deleteByEquipment(Equipment equipment);
 }
