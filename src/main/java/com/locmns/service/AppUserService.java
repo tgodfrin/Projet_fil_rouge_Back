@@ -16,6 +16,7 @@ import java.util.Optional;
 public class AppUserService {
 
     public static class UserNotFoundException extends Exception {}
+    public static class InvalidPasswordException extends Exception {}
 
     private final AppUserDao appUserDao;
     private final ProfilDao  profilDao;
@@ -55,9 +56,14 @@ public class AppUserService {
         appUserDao.save(existing);
     }
 
-    public void updatePassword(Integer id, String newPassword) throws UserNotFoundException {
+    public void updatePassword(Integer id, String oldPassword, String newPassword)
+            throws UserNotFoundException, InvalidPasswordException {
         AppUser existing = appUserDao.findById(id)
                 .orElseThrow(UserNotFoundException::new);
+        // TODO: remplacer la comparaison directe par passwordEncoder.matches(oldPassword, existing.getPassword()) quand BCrypt sera branché
+        if (!oldPassword.equals(existing.getPassword())) {
+            throw new InvalidPasswordException();
+        }
         // TODO: existing.setPassword(bCryptPasswordEncoder.encode(newPassword));
         existing.setPassword(newPassword);
         appUserDao.save(existing);

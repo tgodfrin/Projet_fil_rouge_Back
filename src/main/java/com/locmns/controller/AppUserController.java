@@ -79,12 +79,15 @@ public class AppUserController {
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Integer id,
-            @RequestParam @NotBlank(message = "Le mot de passe ne peut pas être vide") String password) {
+            @RequestParam @NotBlank(message = "L'ancien mot de passe ne peut pas être vide") String oldPassword,
+            @RequestParam @NotBlank(message = "Le nouveau mot de passe ne peut pas être vide") String password) {
         try {
-            appUserService.updatePassword(id, password);
+            appUserService.updatePassword(id, oldPassword, password);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (AppUserService.InvalidPasswordException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 
