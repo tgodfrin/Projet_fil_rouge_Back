@@ -1,6 +1,8 @@
 package com.locmns.interceptor;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -15,13 +17,27 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionInterceptor {
 
-    // Erreurs de validation (@NotBlank, @Size...)
+    // Erreurs de validation sur @RequestBody (@NotBlank, @Size, @Email...)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        return errors;
+    }
+
+    // Erreurs de validation sur @RequestParam (@NotBlank, @Email...)
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            // propertyPath = "methodName.paramName" → on garde seulement le nom du param
+            String field = violation.getPropertyPath().toString();
+            field = field.contains(".") ? field.substring(field.lastIndexOf('.') + 1) : field;
+            errors.put(field, violation.getMessage());
         }
         return errors;
     }

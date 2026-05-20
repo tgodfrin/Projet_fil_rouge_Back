@@ -1,7 +1,10 @@
 -- =============================================
 -- JEU DE DONNÉES LOC-MNS
--- Exécuté automatiquement au démarrage
--- (spring.sql.init.mode=always + ddl-auto=create)
+-- Idempotent : safe à rejouer sur ddl-auto=update
+-- Tables avec contrainte unique  → ON CONFLICT (...) DO NOTHING
+-- Tables sans contrainte unique  → INSERT ... SELECT ... WHERE NOT EXISTS
+-- Note : les colonnes @CreationTimestamp (created_at, begin_date, added_date,
+--        begin_status_date) sont NOT NULL → fournies explicitement ici
 -- =============================================
 
 
@@ -103,12 +106,12 @@ INSERT INTO equipment (reference, equipment_name, location, acquisition_date, eq
 
 
 -- =============================================
--- 5. CAN_LOAN — quels profils peuvent emprunter quelles familles
+-- 5. CAN_LOAN (pas de PK sur la table de jointure → WHERE NOT EXISTS)
 -- =============================================
--- GESTIONNAIRE : tout
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
-  WHERE p.type = 'GESTIONNAIRE';
+  WHERE p.type = 'GESTIONNAIRE'
+    AND NOT EXISTS (SELECT 1 FROM can_loan cl WHERE cl.profil_id = p.id AND cl.equipment_family_id = ef.id);
 
 -- COLLABORATEUR : PC, Écran, Casque VR, Vidéoprojecteur, Périphérique
 INSERT INTO can_loan (profil_id, equipment_family_id)
@@ -144,7 +147,7 @@ INSERT INTO characteristic (name) VALUES
 
 
 -- =============================================
--- 7. EST_CONSTITUE — caractéristiques par famille
+-- 7. EST_CONSTITUE (pas de PK → WHERE NOT EXISTS)
 -- =============================================
 -- PC : Processeur, RAM, Stockage, OS
 INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
@@ -152,7 +155,6 @@ INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
   WHERE ef.name_equipment_family = 'PC'
     AND c.name IN ('Processeur', 'RAM', 'Stockage', 'Système d''exploitation');
 
--- Écran : Résolution
 INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
   SELECT c.id, ef.id FROM characteristic c, equipment_family ef
   WHERE ef.name_equipment_family = 'Écran' AND c.name = 'Résolution';
@@ -639,11 +641,13 @@ INSERT INTO fait_reference (doc_id, equipment_id)
 
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
-  WHERE d.title = 'Guide Logitech MX Keys' AND e.reference = 'REF-PER-002';
+  WHERE d.title = 'Guide de démarrage iPad Pro' AND e.reference = 'REF-TAB-001'
+    AND NOT EXISTS (SELECT 1 FROM fait_reference fr WHERE fr.doc_id = d.id AND fr.equipment_id = e.id);
 
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
-  WHERE d.title = 'Fiche technique Dell UltraSharp 27"' AND e.reference = 'REF-ECR-001';
+  WHERE d.title = 'Documentation Dell XPS 15' AND e.reference = 'REF-PC-002'
+    AND NOT EXISTS (SELECT 1 FROM fait_reference fr WHERE fr.doc_id = d.id AND fr.equipment_id = e.id);
 
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e

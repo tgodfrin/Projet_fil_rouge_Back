@@ -1,6 +1,8 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.dto.StatusEquipmentRequest;
+import com.locmns.model.Equipment;
 import com.locmns.model.StatusEquipment;
 import com.locmns.service.StatusEquipmentService;
 import com.locmns.view.StatusEquipmentView;
@@ -31,17 +33,16 @@ public class StatusEquipmentController {
     }
 
     // Signale une nouvelle panne ou mise en réparation sur un équipement
-    // Le body doit contenir : statusEquipmentType, descriptionStatus, equipment (avec id)
-    // beginStatusDate est rempli automatiquement — endStatusDate restera null jusqu'au resolve
+    // Le front envoie : statusEquipmentType, descriptionStatus, equipmentId
     @PostMapping("/status-equipment")
     @JsonView(StatusEquipmentView.class)
-    public ResponseEntity<StatusEquipment> create(@RequestBody @Valid StatusEquipment statusEquipment) {
+    public ResponseEntity<StatusEquipment> create(@RequestBody @Valid StatusEquipmentRequest dto) {
+        StatusEquipment statusEquipment = toEntity(dto);
         statusEquipmentService.create(statusEquipment);
         return new ResponseEntity<>(statusEquipment, HttpStatus.CREATED);
     }
 
     // Clôture un statut technique (fin de panne ou de réparation)
-    // Remplit endStatusDate avec l'heure actuelle — l'équipement redevient disponible
     @PutMapping("/status-equipment/{id}/resolve")
     public ResponseEntity<Void> resolve(@PathVariable Integer id) {
         try {
@@ -50,5 +51,15 @@ public class StatusEquipmentController {
         } catch (StatusEquipmentService.StatusEquipmentNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    private StatusEquipment toEntity(StatusEquipmentRequest dto) {
+        StatusEquipment statusEquipment = new StatusEquipment();
+        statusEquipment.setStatusEquipmentType(dto.getStatusEquipmentType());
+        statusEquipment.setDescriptionStatus(dto.getDescriptionStatus());
+        Equipment equipment = new Equipment();
+        equipment.setId(dto.getEquipmentId());
+        statusEquipment.setEquipment(equipment);
+        return statusEquipment;
     }
 }

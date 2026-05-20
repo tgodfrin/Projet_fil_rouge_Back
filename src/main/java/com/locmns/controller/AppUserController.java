@@ -1,9 +1,13 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.dto.AppUserRequest;
 import com.locmns.model.AppUser;
+import com.locmns.model.Profil;
 import com.locmns.service.AppUserService;
 import com.locmns.view.AppUserView;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +20,7 @@ import java.util.Optional;
 @RestController
 @CrossOrigin
 @RequiredArgsConstructor
+@Validated
 public class AppUserController {
 
     private final AppUserService appUserService;
@@ -36,8 +41,8 @@ public class AppUserController {
 
     @PostMapping("/user")
     @JsonView(AppUserView.class)
-    public ResponseEntity<AppUser> create(
-            @RequestBody @Validated(AppUser.OnCreate.class) AppUser user) {
+    public ResponseEntity<AppUser> create(@RequestBody @Validated AppUserRequest dto) {
+        AppUser user = toEntity(dto);
         appUserService.create(user);
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
@@ -60,7 +65,8 @@ public class AppUserController {
     @PutMapping("/user/{id}/email")
     public ResponseEntity<Void> updateEmail(
             @PathVariable Integer id,
-            @RequestParam String email) {
+            @RequestParam @NotBlank(message = "L'email ne peut pas être vide")
+            @Email(message = "L'email est mal formé") String email) {
         try {
             appUserService.updateEmail(id, email);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -73,12 +79,24 @@ public class AppUserController {
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Integer id,
-            @RequestParam String password) {
+            @RequestParam @NotBlank(message = "Le mot de passe ne peut pas être vide") String password) {
         try {
             appUserService.updatePassword(id, password);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    private AppUser toEntity(AppUserRequest dto) {
+        AppUser user = new AppUser();
+        user.setEmail(dto.getEmail());
+        user.setName(dto.getName());
+        user.setLastname(dto.getLastname());
+        user.setPassword(dto.getPassword());
+        Profil profil = new Profil();
+        profil.setId(dto.getProfilId());
+        user.setProfil(profil);
+        return user;
     }
 }

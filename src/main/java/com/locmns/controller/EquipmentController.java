@@ -1,7 +1,9 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.dto.EquipmentRequest;
 import com.locmns.model.Equipment;
+import com.locmns.model.EquipmentFamily;
 import com.locmns.service.EquipmentService;
 import com.locmns.view.EquipmentView;
 import jakarta.validation.Valid;
@@ -27,14 +29,11 @@ public class EquipmentController {
         return equipmentService.findAll();
     }
 
-
     @GetMapping("/equipment/{id}")
     @JsonView(EquipmentView.class)
     public ResponseEntity<Equipment> getById(@PathVariable Integer id) {
         Optional<Equipment> opt = equipmentService.findById(id);
-        if (opt.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
@@ -62,7 +61,8 @@ public class EquipmentController {
 
     @PostMapping("/equipment")
     @JsonView(EquipmentView.class)
-    public ResponseEntity<Equipment> create(@RequestBody @Valid Equipment equipment) {
+    public ResponseEntity<Equipment> create(@RequestBody @Valid EquipmentRequest dto) {
+        Equipment equipment = toEntity(dto);
         equipmentService.create(equipment);
         return new ResponseEntity<>(equipment, HttpStatus.CREATED);
     }
@@ -70,9 +70,9 @@ public class EquipmentController {
     @PutMapping("/equipment/{id}")
     public ResponseEntity<Void> update(
             @PathVariable Integer id,
-            @RequestBody @Valid Equipment equipment) {
+            @RequestBody @Valid EquipmentRequest dto) {
         try {
-            equipmentService.update(id, equipment);
+            equipmentService.update(id, toEntity(dto));
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (EquipmentService.EquipmentNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -87,5 +87,17 @@ public class EquipmentController {
         } catch (EquipmentService.EquipmentNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    private Equipment toEntity(EquipmentRequest dto) {
+        Equipment equipment = new Equipment();
+        equipment.setReference(dto.getReference());
+        equipment.setEquipmentName(dto.getEquipmentName());
+        equipment.setLocation(dto.getLocation());
+        equipment.setAcquisitionDate(dto.getAcquisitionDate());
+        EquipmentFamily family = new EquipmentFamily();
+        family.setId(dto.getEquipmentFamilyId());
+        equipment.setEquipmentFamily(family);
+        return equipment;
     }
 }

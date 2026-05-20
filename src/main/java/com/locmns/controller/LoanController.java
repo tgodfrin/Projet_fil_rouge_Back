@@ -1,6 +1,9 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.dto.LoanRequest;
+import com.locmns.model.AppUser;
+import com.locmns.model.Equipment;
 import com.locmns.model.Loan;
 import com.locmns.service.LoanService;
 import com.locmns.view.LoanView;
@@ -21,24 +24,19 @@ public class LoanController {
 
     private final LoanService loanService;
 
-
     @GetMapping("/loan/list")
     @JsonView(LoanView.class)
     public List<Loan> getAll() {
         return loanService.findAll();
     }
 
-
     @GetMapping("/loan/{id}")
     @JsonView(LoanView.class)
     public ResponseEntity<Loan> getById(@PathVariable Integer id) {
         Optional<Loan> opt = loanService.findById(id);
-        if (opt.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
-
 
     @GetMapping("/loan/user/{userId}")
     @JsonView(LoanView.class)
@@ -46,17 +44,16 @@ public class LoanController {
         return loanService.findByRequester(userId);
     }
 
-
-    // Le front envoie : beginDate, endDate, requester: {id}, equipment: {id}
-    // statusType, statusDate, validator et realEndDate sont gérés par le service — ne pas les envoyer
+    // Le front envoie : beginDate, endDate, requesterId, equipmentId
+    // statusType, statusDate, validator et realEndDate sont gérés par le service
     @PostMapping("/loan")
     @JsonView(LoanView.class)
-    public ResponseEntity<Loan> create(@RequestBody @Valid Loan loan) {
+    public ResponseEntity<Loan> create(@RequestBody @Valid LoanRequest dto) {
         try {
+            Loan loan = toEntity(dto);
             loanService.create(loan);
             return new ResponseEntity<>(loan, HttpStatus.CREATED);
         } catch (LoanService.UnauthorizedEquipmentFamilyException e) {
-            // Le profil de l'utilisateur n'autorise pas la famille de cet équipement
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
@@ -91,8 +88,7 @@ public class LoanController {
         return loanService.findPending();
     }
 
-    // PUT /loan/{id}/validate?validatorId=X → gestionnaire valide : VALID → IN_PROGRESS
-    // validatorId passé en @RequestParam car c'est une donnée simple, pas besoin d'un body entier
+    // PUT /loan/{id}/validate?validatorId=X → gestionnaire valide : IN_PROGRESS → VALID
     @PutMapping("/loan/{id}/validate")
     public ResponseEntity<Void> validate(
             @PathVariable Integer id,
@@ -105,8 +101,7 @@ public class LoanController {
         }
     }
 
-    // PUT /loan/{id}/invalidate → gestionnaire refuse : VALID → INVALID
-    // Pas de body ni de @RequestParam — l'id dans l'URL suffit
+    // PUT /loan/{id}/invalidate → gestionnaire refuse : IN_PROGRESS → INVALID
     @PutMapping("/loan/{id}/invalidate")
     public ResponseEntity<Void> invalidate(@PathVariable Integer id) {
         try {
@@ -117,8 +112,7 @@ public class LoanController {
         }
     }
 
-    // PUT /loan/{id}/return → retour du matériel : IN_PROGRESS → TERMINE
-    // Remplit realEndDate avec now() — marque la fin effective de l'emprunt
+    // PUT /loan/{id}/return → retour du matériel : VALID → TERMINE
     @PutMapping("/loan/{id}/return")
     public ResponseEntity<Void> returnEquipment(@PathVariable Integer id) {
         try {
@@ -127,5 +121,18 @@ public class LoanController {
         } catch (LoanService.LoanNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    private Loan toEntity(LoanRequest dto) {
+        Loan loan = new Loan();
+        loan.setBeginDate(dto.getBeginDate());
+        loan.setEndDate(dto.getEndDate());
+        AppUser requester = new AppUser();
+        requester.setId(dto.getRequesterId());
+        loan.setRequester(requester);
+        Equipment equipment = new Equipment();
+        equipment.setId(dto.getEquipmentId());
+        loan.setEquipment(equipment);
+        return loan;
     }
 }
