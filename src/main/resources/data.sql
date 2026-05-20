@@ -498,6 +498,25 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM equipment WHERE reference = 'REF-PER-002'));
 
 -- -----------------------------------------------
+-- C bis. EMPRUNTS EN RETARD — VALID dont endDate est dépassée (pour les alertes retards)
+-- -----------------------------------------------
+-- Nathan Durand — PERI-001 (retard de 7 jours)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-06 08:00:00', '2026-05-13 18:00:00', NULL, 'VALID',
+   '2026-05-05 10:00:00',
+   (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
+
+-- Emma Petit — ECR-003 (retard de 4 jours)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  ('2026-05-10 09:00:00', '2026-05-16 18:00:00', NULL, 'VALID',
+   '2026-05-09 11:00:00',
+   (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-003'));
+
+-- -----------------------------------------------
 -- D. EMPRUNTS FUTURS — VALID (begin_date dans le futur, approuvés)
 -- -----------------------------------------------
 -- Camille Robert — AUT-003
