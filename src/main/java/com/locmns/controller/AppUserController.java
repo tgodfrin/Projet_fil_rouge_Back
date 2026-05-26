@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import com.locmns.security.IsGestionnaire;
+import com.locmns.security.IsUser;
+import com.locmns.security.AppUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +34,17 @@ public class AppUserController {
     @JsonView(AppUserView.class)
     public List<AppUser> getAll() {
         return appUserService.findAll();
+    }
+
+    // Retourne l'utilisateur actuellement authentifié (lu depuis le token JWT)
+    @IsUser
+    @GetMapping("/user/me")
+    @JsonView(AppUserView.class)
+    public ResponseEntity<AppUser> getMe(@AuthenticationPrincipal AppUserDetails userDetails) {
+        if (userDetails == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        Optional<AppUser> opt = appUserService.findById(userDetails.getUser().getId());
+        if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
     @GetMapping("/user/{id}")
