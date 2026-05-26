@@ -33,6 +33,7 @@ public class LoanController {
         return loanService.findAll();
     }
 
+    @IsUser
     @GetMapping("/loan/{id}")
     @JsonView(LoanView.class)
     public ResponseEntity<Loan> getById(@PathVariable Integer id) {
@@ -42,6 +43,7 @@ public class LoanController {
     }
 
     // Tout utilisateur peut voir ses propres emprunts
+    @IsUser
     @GetMapping("/loan/user/{userId}")
     @JsonView(LoanView.class)
     public List<Loan> getByUser(@PathVariable Integer userId) {
@@ -49,6 +51,7 @@ public class LoanController {
     }
 
     // Collaborateur peut faire une demande de pret
+    @IsUser
     @PostMapping("/loan")
     @JsonView(LoanView.class)
     public ResponseEntity<Loan> create(@RequestBody @Valid LoanRequest dto) {
@@ -62,6 +65,7 @@ public class LoanController {
     }
 
     // Planning accessible a tous les roles
+    @IsUser
     @GetMapping("/loan/planning")
     @JsonView(LoanView.class)
     public List<Loan> getForPlanning(
@@ -70,6 +74,7 @@ public class LoanController {
         return loanService.findForPlanning(begin, end);
     }
 
+    @IsUser
     @GetMapping("/loan/equipment/{equipmentId}")
     @JsonView(LoanView.class)
     public List<Loan> getByEquipment(@PathVariable Integer equipmentId) {
@@ -117,6 +122,7 @@ public class LoanController {
     }
 
     // Retour materiel : tout utilisateur authentifie (le collaborateur retourne son materiel)
+    @IsUser
     @PutMapping("/loan/{id}/return")
     public ResponseEntity<Void> returnEquipment(@PathVariable Integer id) {
         try {

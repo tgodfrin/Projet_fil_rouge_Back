@@ -8,6 +8,8 @@ import com.locmns.model.Equipment;
 import com.locmns.service.CharacteristicValueService;
 import com.locmns.view.CharacteristicValueView;
 import jakarta.validation.Valid;
+import com.locmns.security.IsGestionnaire;
+import com.locmns.security.IsUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ public class CharacteristicValueController {
     private final CharacteristicValueService characteristicValueService;
 
     // Toutes les caractéristiques d'un équipement — utilisé par l'onglet "Caractéristiques" de equipment-detail
+    @IsUser
     @GetMapping("/characteristic-value/equipment/{equipmentId}")
     @JsonView(CharacteristicValueView.class)
     public List<CharacteristicValue> getByEquipment(@PathVariable Integer equipmentId) {
@@ -30,6 +33,7 @@ public class CharacteristicValueController {
 
     // Créer une valeur de caractéristique et l'associer à un équipement
     // Le front envoie : value, equipmentId, characteristicId
+    @IsGestionnaire
     @PostMapping("/characteristic-value")
     @JsonView(CharacteristicValueView.class)
     public ResponseEntity<CharacteristicValue> create(@RequestBody @Valid CharacteristicValueRequest dto) {

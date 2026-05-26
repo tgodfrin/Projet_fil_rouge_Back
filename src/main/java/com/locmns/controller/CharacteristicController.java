@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.dao.CharacteristicDao;
 import com.locmns.model.Characteristic;
 import com.locmns.view.CharacteristicValueView;
+import com.locmns.security.IsGestionnaire;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ public class CharacteristicController {
     private final CharacteristicDao characteristicDao;
 
     // Utilisé par le formulaire de création d'équipement pour alimenter les selects de caractéristiques
+    @IsGestionnaire
     @GetMapping("/characteristic/list")
     @JsonView(CharacteristicValueView.class)
     public List<Characteristic> getAll() {

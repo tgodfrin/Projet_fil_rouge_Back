@@ -7,6 +7,8 @@ import com.locmns.model.StatusEquipment;
 import com.locmns.service.StatusEquipmentService;
 import com.locmns.view.StatusEquipmentView;
 import jakarta.validation.Valid;
+import com.locmns.security.IsGestionnaire;
+import com.locmns.security.IsUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ public class StatusEquipmentController {
 
     private final StatusEquipmentService statusEquipmentService;
 
+    @IsUser
     @GetMapping("/status-equipment/equipment/{equipmentId}")
     @JsonView(StatusEquipmentView.class)
     public ResponseEntity<List<StatusEquipment>> getByEquipment(@PathVariable Integer equipmentId) {
@@ -33,6 +36,7 @@ public class StatusEquipmentController {
 
     // Signale une nouvelle panne ou mise en réparation sur un équipement
     // Le front envoie : statusEquipmentType, descriptionStatus, equipmentId
+    @IsGestionnaire
     @PostMapping("/status-equipment")
     @JsonView(StatusEquipmentView.class)
     public ResponseEntity<StatusEquipment> create(@RequestBody @Valid StatusEquipmentRequest dto) {
@@ -42,6 +46,7 @@ public class StatusEquipmentController {
     }
 
     // Clôture un statut technique (fin de panne ou de réparation)
+    @IsGestionnaire
     @PutMapping("/status-equipment/{id}/resolve")
     public ResponseEntity<Void> resolve(@PathVariable Integer id) {
         try {

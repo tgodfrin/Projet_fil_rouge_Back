@@ -47,6 +47,7 @@ public class AppUserController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    @IsGestionnaire
     @GetMapping("/user/{id}")
     @JsonView(AppUserView.class)
     public ResponseEntity<AppUser> getById(@PathVariable Integer id) {
@@ -81,7 +82,8 @@ public class AppUserController {
         return appUserService.findByProfil(type);
     }
 
-    // Modifier uniquement l'email (tout utilisateur connecte peut modifier le sien)
+    // Modifier uniquement l'email (gestionnaire uniquement — par ID)
+    @IsGestionnaire
     @PutMapping("/user/{id}/email")
     public ResponseEntity<Void> updateEmail(
             @PathVariable Integer id,
@@ -95,7 +97,8 @@ public class AppUserController {
         }
     }
 
-    // Modifier uniquement le password
+    // Modifier uniquement le password (gestionnaire uniquement — par ID)
+    @IsGestionnaire
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Integer id,

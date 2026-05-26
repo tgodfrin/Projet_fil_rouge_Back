@@ -7,6 +7,8 @@ import com.locmns.model.Loan;
 import com.locmns.service.EventService;
 import com.locmns.view.EventView;
 import jakarta.validation.Valid;
+import com.locmns.security.IsGestionnaire;
+import com.locmns.security.IsUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ public class EventController {
 
     // Signaler un événement (incident, retour anticipé, extension) lié à un emprunt
     // Le front envoie : type, description, loanId
+    @IsUser
     @PostMapping("/event")
     @JsonView(EventView.class)
     public ResponseEntity<Event> create(@RequestBody @Valid EventRequest dto) {
@@ -31,6 +34,7 @@ public class EventController {
     }
 
     // Historique de tous les événements d'un emprunt précis
+    @IsUser
     @GetMapping("/event/loan/{loanId}")
     @JsonView(EventView.class)
     public List<Event> getByLoan(@PathVariable Integer loanId) {
@@ -38,6 +42,7 @@ public class EventController {
     }
 
     // Notifications non lues du gestionnaire (readingDate IS NULL)
+    @IsGestionnaire
     @GetMapping("/event/unread")
     @JsonView(EventView.class)
     public List<Event> getUnread() {
@@ -45,6 +50,7 @@ public class EventController {
     }
 
     // Marquer un événement comme lu (renseigne readingDate à maintenant)
+    @IsGestionnaire
     @PutMapping("/event/{id}/read")
     @JsonView(EventView.class)
     public ResponseEntity<Event> markAsRead(@PathVariable Integer id) {

@@ -6,6 +6,8 @@ import com.locmns.dto.EquipmentFamilyRequest;
 import com.locmns.model.EquipmentFamily;
 import com.locmns.view.EquipmentFamilyView;
 import jakarta.validation.Valid;
+import com.locmns.security.IsGestionnaire;
+import com.locmns.security.IsUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +22,15 @@ public class EquipmentFamilyController {
 
     private final EquipmentFamilyDao equipmentFamilyDao;
 
-    // Les catégories sont fixes — lecture seule uniquement
+    // Les catégories sont lisibles par tous les utilisateurs connectés
+    @IsUser
     @GetMapping("/equipment-family/list")
     @JsonView(EquipmentFamilyView.class)
     public List<EquipmentFamily> getAll() {
         return equipmentFamilyDao.findAll();
     }
 
+    @IsUser
     @GetMapping("/equipment-family/{id}")
     @JsonView(EquipmentFamilyView.class)
     public ResponseEntity<EquipmentFamily> getById(@PathVariable Integer id) {
@@ -35,6 +39,7 @@ public class EquipmentFamilyController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    @IsGestionnaire
     @PostMapping("/equipment-family")
     @JsonView(EquipmentFamilyView.class)
     public ResponseEntity<EquipmentFamily> create(@RequestBody @Valid EquipmentFamilyRequest dto) {
@@ -43,6 +48,7 @@ public class EquipmentFamilyController {
         return new ResponseEntity<>(family, HttpStatus.CREATED);
     }
 
+    @IsGestionnaire
     @PutMapping("/equipment-family/{id}")
     public ResponseEntity<Void> update(@PathVariable Integer id, @RequestBody @Valid EquipmentFamilyRequest dto) {
         if (equipmentFamilyDao.findById(id).isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -52,6 +58,7 @@ public class EquipmentFamilyController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @IsGestionnaire
     @DeleteMapping("/equipment-family/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (equipmentFamilyDao.findById(id).isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
