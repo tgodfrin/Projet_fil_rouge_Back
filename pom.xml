@@ -53,6 +53,13 @@
             <version>0.9.1</version>
         </dependency>
 
+        <!-- JAXB API : requis par jjwt 0.9.1 sur Java 11+ (supprime du JDK) -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+
         <!-- PostgreSQL -->
         <dependency>
             <groupId>org.postgresql</groupId>
