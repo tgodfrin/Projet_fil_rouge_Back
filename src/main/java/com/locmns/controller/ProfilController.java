@@ -5,14 +5,12 @@ import com.locmns.dao.ProfilDao;
 import com.locmns.model.Profil;
 import com.locmns.view.AppUserView;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@CrossOrigin
 @RequiredArgsConstructor
 public class ProfilController {
 

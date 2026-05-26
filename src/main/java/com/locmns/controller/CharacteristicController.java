@@ -5,14 +5,12 @@ import com.locmns.dao.CharacteristicDao;
 import com.locmns.model.Characteristic;
 import com.locmns.view.CharacteristicValueView;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@CrossOrigin
 @RequiredArgsConstructor
 public class CharacteristicController {
 
