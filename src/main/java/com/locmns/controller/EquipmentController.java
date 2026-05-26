@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.locmns.security.IsGestionnaire;
+import com.locmns.security.IsUser;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,12 +25,14 @@ public class EquipmentController {
     private final EquipmentService equipmentService;
 
     // Lecture : tout utilisateur authentifie peut voir les equipements
+    @IsUser
     @GetMapping("/equipment/list")
     @JsonView(EquipmentView.class)
     public List<Equipment> getAll() {
         return equipmentService.findAll();
     }
 
+    @IsUser
     @GetMapping("/equipment/{id}")
     @JsonView(EquipmentView.class)
     public ResponseEntity<Equipment> getById(@PathVariable Integer id) {
@@ -38,6 +41,7 @@ public class EquipmentController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    @IsUser
     @GetMapping("/equipment/available")
     @JsonView(EquipmentView.class)
     public List<Equipment> getAvailable(
@@ -46,12 +50,14 @@ public class EquipmentController {
         return equipmentService.findAvailableForPeriod(begin, end);
     }
 
+    @IsUser
     @GetMapping("/equipment/search")
     @JsonView(EquipmentView.class)
     public List<Equipment> search(@RequestParam String q) {
         return equipmentService.searchByName(q);
     }
 
+    @IsUser
     @GetMapping("/equipment/family/{familyId}")
     @JsonView(EquipmentView.class)
     public List<Equipment> getByFamily(@PathVariable Integer familyId) {
