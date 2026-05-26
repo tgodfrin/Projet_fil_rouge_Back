@@ -11,8 +11,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.locmns.security.AppUserDetails;
 import com.locmns.security.IsGestionnaire;
 import com.locmns.security.IsUser;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -97,13 +99,14 @@ public class LoanController {
     }
 
     // Validation/refus : gestionnaire uniquement
+    // Le validatorId est lu depuis le token JWT — jamais fourni par le client
     @IsGestionnaire
     @PutMapping("/loan/{id}/validate")
     public ResponseEntity<Void> validate(
             @PathVariable Integer id,
-            @RequestParam Integer validatorId) {
+            @AuthenticationPrincipal AppUserDetails userDetails) {
         try {
-            loanService.validate(id, validatorId);
+            loanService.validate(id, userDetails.getUser().getId());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (LoanService.LoanNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
