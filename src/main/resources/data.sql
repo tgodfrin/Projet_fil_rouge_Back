@@ -30,25 +30,27 @@ INSERT INTO equipment_family (name_equipment_family) VALUES ('Autre')          O
 
 -- =============================================
 -- 3. UTILISATEURS (2 gestionnaires, 5 collaborateurs, 3 intervenants, 2 stagiaires)
--- Mot de passe : admin123 / user123
+-- Mots de passe haches BCrypt :
+--   admin123 -> $2b$10$PsWybdIaWo/oud8qrXBJL.Q9ByKvP6E/ZMw0hPUzuf2ElNEHMdFJC
+--   user123  -> $2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS
 -- =============================================
 INSERT INTO app_user (email, name, lastname, password, created_at, profil_id) VALUES
-  -- Gestionnaires
-  ('jean.martin@mns.fr',    'Jean',    'Martin',   'admin123', '2024-09-01 08:00:00', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
-  ('sophie.leblanc@mns.fr', 'Sophie',  'Leblanc',  'admin123', '2024-09-01 08:00:00', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
-  -- Collaborateurs
-  ('thomas.dupont@mns.fr',  'Thomas',  'Dupont',   'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('marie.leroy@mns.fr',    'Marie',   'Leroy',    'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('lucas.bernard@mns.fr',  'Lucas',   'Bernard',  'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('emma.petit@mns.fr',     'Emma',    'Petit',    'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  ('nathan.durand@mns.fr',  'Nathan',  'Durand',   'user123',  '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
-  -- Intervenants
-  ('pierre.moreau@mns.fr',  'Pierre',  'Moreau',   'user123',  '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
-  ('laura.simon@mns.fr',    'Laura',   'Simon',    'user123',  '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
-  ('hugo.michel@mns.fr',    'Hugo',    'Michel',   'user123',  '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
-  -- Stagiaires
-  ('camille.robert@mns.fr', 'Camille', 'Robert',   'user123',  '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE')),
-  ('alexis.laurent@mns.fr', 'Alexis',  'Laurent',  'user123',  '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE'));
+  -- Gestionnaires (mdp : admin123)
+  ('jean.martin@mns.fr',    'Jean',    'Martin',   '$2b$10$PsWybdIaWo/oud8qrXBJL.Q9ByKvP6E/ZMw0hPUzuf2ElNEHMdFJC', '2024-09-01 08:00:00', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
+  ('sophie.leblanc@mns.fr', 'Sophie',  'Leblanc',  '$2b$10$PsWybdIaWo/oud8qrXBJL.Q9ByKvP6E/ZMw0hPUzuf2ElNEHMdFJC', '2024-09-01 08:00:00', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
+  -- Collaborateurs (mdp : user123)
+  ('thomas.dupont@mns.fr',  'Thomas',  'Dupont',   '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('marie.leroy@mns.fr',    'Marie',   'Leroy',    '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('lucas.bernard@mns.fr',  'Lucas',   'Bernard',  '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('emma.petit@mns.fr',     'Emma',    'Petit',    '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  ('nathan.durand@mns.fr',  'Nathan',  'Durand',   '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-02 09:00:00', (SELECT id FROM profil WHERE type = 'COLLABORATEUR')),
+  -- Intervenants (mdp : user123)
+  ('pierre.moreau@mns.fr',  'Pierre',  'Moreau',   '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
+  ('laura.simon@mns.fr',    'Laura',   'Simon',    '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
+  ('hugo.michel@mns.fr',    'Hugo',    'Michel',   '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-03 09:00:00', (SELECT id FROM profil WHERE type = 'INTERVENANT')),
+  -- Stagiaires (mdp : user123)
+  ('camille.robert@mns.fr', 'Camille', 'Robert',   '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE')),
+  ('alexis.laurent@mns.fr', 'Alexis',  'Laurent',  '$2b$10$WpSR9zSHzR/o1oKfL9fWZuQzxIVfoBzXFG6L0m2m/mbkCvxmJS3aS', '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE'));
 
 
 -- =============================================

@@ -30,24 +30,24 @@ public class AppUser {
     protected Integer id;
 
     @Column(nullable = false, unique = true)
-    @NotBlank(groups = OnCreate.class, message = "L'email ne peut pas être vide")
-    @Email(groups = OnCreate.class, message = "L'email est mal formé")
+    @NotBlank(groups = OnCreate.class, message = "L'email ne peut pas etre vide")
+    @Email(groups = OnCreate.class, message = "L'email est mal forme")
     @JsonView(AppUserView.class)
     protected String email;
 
     @Column(nullable = false, updatable = false)
-    @NotBlank(groups = OnCreate.class, message = "Le nom ne peut pas être vide")
+    @NotBlank(groups = OnCreate.class, message = "Le nom ne peut pas etre vide")
     @JsonView({AppUserView.class, LoanView.class})
     protected String name;
 
     @Column(nullable = false, updatable = false)
-    @NotBlank(groups = OnCreate.class, message = "Le prénom ne peut pas être vide")
+    @NotBlank(groups = OnCreate.class, message = "Le prenom ne peut pas etre vide")
     @JsonView({AppUserView.class, LoanView.class})
     protected String lastname;
 
     @Column(nullable = false)
-    @NotBlank(groups = OnCreate.class, message = "Le mot de passe ne peut pas être vide")
-    // pas de @JsonView → le password n'est jamais sérialisé
+    @NotBlank(groups = OnCreate.class, message = "Le mot de passe ne peut pas etre vide")
+    // pas de @JsonView : le password n'est jamais serialise
     protected String password;
 
     @CreationTimestamp

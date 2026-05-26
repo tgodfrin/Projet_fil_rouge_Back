@@ -6,6 +6,7 @@ import com.locmns.enums.ProfilType;
 import com.locmns.model.AppUser;
 import com.locmns.model.Profil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,8 +19,9 @@ public class AppUserService {
     public static class UserNotFoundException extends Exception {}
     public static class InvalidPasswordException extends Exception {}
 
-    private final AppUserDao appUserDao;
-    private final ProfilDao  profilDao;
+    private final AppUserDao      appUserDao;
+    private final ProfilDao       profilDao;
+    private final PasswordEncoder passwordEncoder;
 
     public List<AppUser> findAll() {
         return appUserDao.findAll();
@@ -31,20 +33,20 @@ public class AppUserService {
 
     public void create(AppUser user) {
         user.setId(null);
-        // TODO: user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        // Charger le Profil managé pour éviter l'erreur "detached entity" de JPA
+        // Hachage du mot de passe avant persistance en BDD
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Charger le Profil manage pour eviter l'erreur "detached entity" de JPA
         Profil managedProfil = profilDao.getReferenceById(user.getProfil().getId());
         user.setProfil(managedProfil);
         appUserDao.save(user);
     }
 
-    // Recherche serveur par nom, prénom ou email (insensible à la casse, contenu partiel)
+    // Recherche serveur par nom, prenom ou email (insensible a la casse, contenu partiel)
     public List<AppUser> search(String q) {
         return appUserDao.searchByNameOrLastnameOrEmail(q);
     }
 
-    // Retourne tous les utilisateurs d'un profil donné (GESTIONNAIRE, COLLABORATEUR...)
-    // findByProfilType utilise Spring Data pour générer la requête sans créer d'entité partielle
+    // Retourne tous les utilisateurs d'un profil donne (GESTIONNAIRE, COLLABORATEUR...)
     public List<AppUser> findByProfil(String profilType) {
         return appUserDao.findByProfilType(ProfilType.valueOf(profilType));
     }
@@ -60,12 +62,12 @@ public class AppUserService {
             throws UserNotFoundException, InvalidPasswordException {
         AppUser existing = appUserDao.findById(id)
                 .orElseThrow(UserNotFoundException::new);
-        // TODO: remplacer la comparaison directe par passwordEncoder.matches(oldPassword, existing.getPassword()) quand BCrypt sera branché
-        if (!oldPassword.equals(existing.getPassword())) {
+        // Verification de l'ancien mot de passe via BCrypt (compare hash BDD avec plaintext)
+        if (!passwordEncoder.matches(oldPassword, existing.getPassword())) {
             throw new InvalidPasswordException();
         }
-        // TODO: existing.setPassword(bCryptPasswordEncoder.encode(newPassword));
-        existing.setPassword(newPassword);
+        // Hachage du nouveau mot de passe avant persistance
+        existing.setPassword(passwordEncoder.encode(newPassword));
         appUserDao.save(existing);
     }
 }

@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.locmns.security.IsGestionnaire;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ public class EquipmentController {
 
     private final EquipmentService equipmentService;
 
+    // Lecture : tout utilisateur authentifie peut voir les equipements
     @GetMapping("/equipment/list")
     @JsonView(EquipmentView.class)
     public List<Equipment> getAll() {
@@ -45,20 +47,20 @@ public class EquipmentController {
         return equipmentService.findAvailableForPeriod(begin, end);
     }
 
-    // GET /equipment/search?q= → recherche serveur par nom
     @GetMapping("/equipment/search")
     @JsonView(EquipmentView.class)
     public List<Equipment> search(@RequestParam String q) {
         return equipmentService.searchByName(q);
     }
 
-    // GET /equipment/family/{familyId} → filtre par famille
     @GetMapping("/equipment/family/{familyId}")
     @JsonView(EquipmentView.class)
     public List<Equipment> getByFamily(@PathVariable Integer familyId) {
         return equipmentService.findByFamily(familyId);
     }
 
+    // Ecriture : seuls les gestionnaires et admins gerent le parc materiel
+    @IsGestionnaire
     @PostMapping("/equipment")
     @JsonView(EquipmentView.class)
     public ResponseEntity<Equipment> create(@RequestBody @Valid EquipmentRequest dto) {
@@ -67,6 +69,7 @@ public class EquipmentController {
         return new ResponseEntity<>(equipment, HttpStatus.CREATED);
     }
 
+    @IsGestionnaire
     @PutMapping("/equipment/{id}")
     public ResponseEntity<Void> update(
             @PathVariable Integer id,
@@ -79,6 +82,7 @@ public class EquipmentController {
         }
     }
 
+    @IsGestionnaire
     @DeleteMapping("/equipment/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         try {

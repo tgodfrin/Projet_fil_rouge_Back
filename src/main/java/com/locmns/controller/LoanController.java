@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.locmns.security.IsGestionnaire;
+import com.locmns.security.IsUser;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,6 +26,8 @@ public class LoanController {
 
     private final LoanService loanService;
 
+    // Gestionnaire uniquement : voir tous les emprunts
+    @IsGestionnaire
     @GetMapping("/loan/list")
     @JsonView(LoanView.class)
     public List<Loan> getAll() {
@@ -38,14 +42,14 @@ public class LoanController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    // Tout utilisateur peut voir ses propres emprunts
     @GetMapping("/loan/user/{userId}")
     @JsonView(LoanView.class)
     public List<Loan> getByUser(@PathVariable Integer userId) {
         return loanService.findByRequester(userId);
     }
 
-    // Le front envoie : beginDate, endDate, requesterId, equipmentId
-    // statusType, statusDate, validator et realEndDate sont gérés par le service
+    // Collaborateur peut faire une demande de pret
     @PostMapping("/loan")
     @JsonView(LoanView.class)
     public ResponseEntity<Loan> create(@RequestBody @Valid LoanRequest dto) {
@@ -58,7 +62,7 @@ public class LoanController {
         }
     }
 
-    // GET /loan/planning?begin=...&end=... → tous les loans qui chevauchent la période donnée
+    // Planning accessible a tous les roles
     @GetMapping("/loan/planning")
     @JsonView(LoanView.class)
     public List<Loan> getForPlanning(
@@ -67,28 +71,29 @@ public class LoanController {
         return loanService.findForPlanning(begin, end);
     }
 
-    // GET /loan/equipment/{equipmentId} → historique des emprunts d'un équipement
     @GetMapping("/loan/equipment/{equipmentId}")
     @JsonView(LoanView.class)
     public List<Loan> getByEquipment(@PathVariable Integer equipmentId) {
         return loanService.findByEquipment(equipmentId);
     }
 
-    // GET /loan/overdue → emprunts en retard (VALID dont endDate est dépassée)
+    // Gestion des retards et demandes en attente : gestionnaire uniquement
+    @IsGestionnaire
     @GetMapping("/loan/overdue")
     @JsonView(LoanView.class)
     public List<Loan> getOverdue() {
         return loanService.findOverdue();
     }
 
-    // GET /loan/pending → demandes en attente de validation (IN_PROGRESS)
+    @IsGestionnaire
     @GetMapping("/loan/pending")
     @JsonView(LoanView.class)
     public List<Loan> getPending() {
         return loanService.findPending();
     }
 
-    // PUT /loan/{id}/validate?validatorId=X → gestionnaire valide : IN_PROGRESS → VALID
+    // Validation/refus : gestionnaire uniquement
+    @IsGestionnaire
     @PutMapping("/loan/{id}/validate")
     public ResponseEntity<Void> validate(
             @PathVariable Integer id,
@@ -101,7 +106,7 @@ public class LoanController {
         }
     }
 
-    // PUT /loan/{id}/invalidate → gestionnaire refuse : IN_PROGRESS → INVALID
+    @IsGestionnaire
     @PutMapping("/loan/{id}/invalidate")
     public ResponseEntity<Void> invalidate(@PathVariable Integer id) {
         try {
@@ -112,7 +117,7 @@ public class LoanController {
         }
     }
 
-    // PUT /loan/{id}/return → retour du matériel : VALID → TERMINE
+    // Retour materiel : tout utilisateur authentifie (le collaborateur retourne son materiel)
     @PutMapping("/loan/{id}/return")
     public ResponseEntity<Void> returnEquipment(@PathVariable Integer id) {
         try {

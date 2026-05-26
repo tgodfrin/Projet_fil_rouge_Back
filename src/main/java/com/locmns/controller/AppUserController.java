@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import com.locmns.security.IsGestionnaire;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,8 @@ public class AppUserController {
 
     private final AppUserService appUserService;
 
+    // Seuls les gestionnaires et admins peuvent lister tous les utilisateurs
+    @IsGestionnaire
     @GetMapping("/user/list")
     @JsonView(AppUserView.class)
     public List<AppUser> getAll() {
@@ -39,6 +42,8 @@ public class AppUserController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    // Seuls les gestionnaires et admins peuvent creer un utilisateur
+    @IsGestionnaire
     @PostMapping("/user")
     @JsonView(AppUserView.class)
     public ResponseEntity<AppUser> create(@RequestBody @Validated AppUserRequest dto) {
@@ -47,26 +52,28 @@ public class AppUserController {
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
-    // GET /user/search?q= → recherche serveur par nom, prénom ou email
+    // GET /user/search?q= -> recherche serveur par nom, prenom ou email
+    @IsGestionnaire
     @GetMapping("/user/search")
     @JsonView(AppUserView.class)
     public List<AppUser> search(@RequestParam String q) {
         return appUserService.search(q);
     }
 
-    // GET /user/profil/{type} → tous les utilisateurs d'un profil donné
+    // GET /user/profil/{type} -> tous les utilisateurs d'un profil donne
+    @IsGestionnaire
     @GetMapping("/user/profil/{type}")
     @JsonView(AppUserView.class)
     public List<AppUser> getByProfil(@PathVariable String type) {
         return appUserService.findByProfil(type);
     }
 
-    // Modifier uniquement l'email
+    // Modifier uniquement l'email (tout utilisateur connecte peut modifier le sien)
     @PutMapping("/user/{id}/email")
     public ResponseEntity<Void> updateEmail(
             @PathVariable Integer id,
-            @RequestParam @NotBlank(message = "L'email ne peut pas être vide")
-            @Email(message = "L'email est mal formé") String email) {
+            @RequestParam @NotBlank(message = "L'email ne peut pas etre vide")
+            @Email(message = "L'email est mal forme") String email) {
         try {
             appUserService.updateEmail(id, email);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -79,8 +86,8 @@ public class AppUserController {
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Integer id,
-            @RequestParam @NotBlank(message = "L'ancien mot de passe ne peut pas être vide") String oldPassword,
-            @RequestParam @NotBlank(message = "Le nouveau mot de passe ne peut pas être vide") String password) {
+            @RequestParam @NotBlank(message = "L'ancien mot de passe ne peut pas etre vide") String oldPassword,
+            @RequestParam @NotBlank(message = "Le nouveau mot de passe ne peut pas etre vide") String password) {
         try {
             appUserService.updatePassword(id, oldPassword, password);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
