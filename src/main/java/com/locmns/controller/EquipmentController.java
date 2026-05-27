@@ -71,7 +71,9 @@ public class EquipmentController {
     public ResponseEntity<Equipment> create(@RequestBody @Valid EquipmentRequest dto) {
         Equipment equipment = toEntity(dto);
         equipmentService.create(equipment);
-        return new ResponseEntity<>(equipment, HttpStatus.CREATED);
+        // Reload from DB to get fully populated relations (equipmentFamily, etc.)
+        Equipment saved = equipmentService.findById(equipment.getId()).orElse(equipment);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @IsGestionnaire
