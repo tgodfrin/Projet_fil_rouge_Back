@@ -136,6 +136,24 @@ public class LoanController {
         }
     }
 
+    // Validate all loans in a group at once
+    @IsGestionnaire
+    @PutMapping("/loan/group/{groupId}/validate")
+    public ResponseEntity<Void> validateGroup(
+            @PathVariable String groupId,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        loanService.validateGroup(groupId, userDetails.getUser().getId());
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Refuse all loans in a group at once
+    @IsGestionnaire
+    @PutMapping("/loan/group/{groupId}/refuse")
+    public ResponseEntity<Void> refuseGroup(@PathVariable String groupId) {
+        loanService.refuseGroup(groupId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     private Loan toEntity(LoanRequest dto) {
         Loan loan = new Loan();
         loan.setBeginDate(dto.getBeginDate());
@@ -146,6 +164,7 @@ public class LoanController {
         Equipment equipment = new Equipment();
         equipment.setId(dto.getEquipmentId());
         loan.setEquipment(equipment);
+        loan.setGroupId(dto.getGroupId());  // null for individual loans
         return loan;
     }
 }

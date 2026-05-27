@@ -123,6 +123,29 @@ public class LoanService {
         loanDao.save(loan);
     }
 
+    // Validates all loans sharing the same groupId — gestionnaire approves the whole group at once
+    public void validateGroup(String groupId, Integer validatorId) {
+        List<Loan> loans = loanDao.findByGroupId(groupId);
+        AppUser validator = new AppUser();
+        validator.setId(validatorId);
+        loans.forEach(loan -> {
+            loan.setValidator(validator);
+            loan.setStatusType(StatusLoanType.VALID);
+            loan.setStatusDate(LocalDateTime.now());
+        });
+        loanDao.saveAll(loans);
+    }
+
+    // Refuses all loans sharing the same groupId — gestionnaire rejects the whole group at once
+    public void refuseGroup(String groupId) {
+        List<Loan> loans = loanDao.findByGroupId(groupId);
+        loans.forEach(loan -> {
+            loan.setStatusType(StatusLoanType.INVALID);
+            loan.setStatusDate(LocalDateTime.now());
+        });
+        loanDao.saveAll(loans);
+    }
+
     public static class LoanNotFoundException extends Exception {}
 
     // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé

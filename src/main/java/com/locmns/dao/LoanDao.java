@@ -38,4 +38,7 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
 
     // Supprime tous les emprunts liés à un équipement (utilisé avant suppression de l'équipement)
     void deleteByEquipment(Equipment equipment);
+
+    // Returns all loans sharing the same groupId — used for group validation/refusal
+    List<Loan> findByGroupId(String groupId);
 }

@@ -21,4 +21,7 @@ public class LoanRequest {
 
     @NotNull(message = "L'équipement est obligatoire")
     private Integer equipmentId;
+
+    // Optional — null for individual loans, UUID string for grouped loan requests
+    private String groupId;
 }

@@ -73,4 +73,10 @@ public class Loan {
     @NotNull
     @JsonView(LoanView.class)
     protected Equipment equipment;
+
+    // Groups multiple loan requests submitted together — null for individual loans
+    // Generated as UUID by the front when the user selects multiple equipments
+    @Column(nullable = true)
+    @JsonView(LoanView.class)
+    private String groupId;
 }
