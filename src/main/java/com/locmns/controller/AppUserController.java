@@ -82,6 +82,23 @@ public class AppUserController {
         return appUserService.findByProfil(type);
     }
 
+    // Allows the authenticated collaborator to change their own password (no gestionnaire role required)
+    @IsUser
+    @PutMapping("/user/me/password")
+    public ResponseEntity<Void> updateMyPassword(
+            @AuthenticationPrincipal AppUserDetails userDetails,
+            @RequestParam @NotBlank(message = "L'ancien mot de passe ne peut pas etre vide") String oldPassword,
+            @RequestParam @NotBlank(message = "Le nouveau mot de passe ne peut pas etre vide") String password) {
+        try {
+            appUserService.updatePassword(userDetails.getUser().getId(), oldPassword, password);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (AppUserService.UserNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (AppUserService.InvalidPasswordException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     // Modifier uniquement l'email (gestionnaire uniquement — par ID)
     @IsGestionnaire
     @PutMapping("/user/{id}/email")
