@@ -3,6 +3,7 @@ package com.locmns.service;
 import com.locmns.dao.CharacteristicValueDao;
 import com.locmns.dao.DocDao;
 import com.locmns.dao.EquipmentDao;
+import com.locmns.dao.EventDao;
 import com.locmns.dao.LoanDao;
 import com.locmns.dao.StatusEquipmentDao;
 import com.locmns.enums.StatusLoanType;
@@ -26,6 +27,7 @@ public class EquipmentService {
     private final StatusEquipmentDao statusEquipmentDao;
     private final CharacteristicValueDao characteristicValueDao;
     private final DocDao docDao;
+    private final EventDao eventDao;
 
     // Récupère tous les équipements et calcule leur statut avant de les retourner
     public List<Equipment> findAll() {
@@ -85,14 +87,15 @@ public class EquipmentService {
         Equipment equipment = equipmentDao.findById(id)
                 .orElseThrow(EquipmentNotFoundException::new);
 
-        // Suppression en cascade (ordre FK) :
-        // 1. Tables de jointure ManyToMany
+        // Deletion in FK-safe order:
+        // 1. ManyToMany join tables
         characteristicValueDao.deleteJoinByEquipmentId(id);
         docDao.deleteJoinByEquipmentId(id);
-        // 2. Entités avec FK directe vers equipment
+        // 2. Entities with direct FK to equipment or its loans
         statusEquipmentDao.deleteByEquipment(equipment);
+        eventDao.deleteByEquipmentId(id);   // must come before loans (event.loan_id FK)
         loanDao.deleteByEquipment(equipment);
-        // 3. L'équipement lui-même
+        // 3. The equipment itself
         equipmentDao.deleteById(id);
     }
 
