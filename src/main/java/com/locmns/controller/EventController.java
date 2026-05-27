@@ -41,6 +41,14 @@ public class EventController {
         return eventService.findByLoan(loanId);
     }
 
+    // All events — allows the front to keep read incidents visible after navigation
+    @IsGestionnaire
+    @GetMapping("/event/list")
+    @JsonView(EventView.class)
+    public List<Event> getAll() {
+        return eventService.findAll();
+    }
+
     // Notifications non lues du gestionnaire (readingDate IS NULL)
     @IsGestionnaire
     @GetMapping("/event/unread")

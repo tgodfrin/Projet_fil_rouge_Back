@@ -34,6 +34,11 @@ public class EventService {
         return eventDao.findByLoan(loan.get());
     }
 
+    // Returns all events — used by the alert list to keep read incidents visible after navigation
+    public List<Event> findAll() {
+        return eventDao.findAll();
+    }
+
     // Retourne les événements non lus (readingDate IS NULL) — alimente les notifications gestionnaire
     public List<Event> findUnread() {
         return eventDao.findByReadingDateIsNull();
