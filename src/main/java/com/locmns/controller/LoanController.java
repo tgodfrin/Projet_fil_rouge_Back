@@ -136,6 +136,14 @@ public class LoanController {
         }
     }
 
+    // Get all loans sharing the same groupId — used by front to display group detail
+    @IsUser
+    @GetMapping("/loan/group/{groupId}")
+    @JsonView(LoanView.class)
+    public List<Loan> getByGroup(@PathVariable String groupId) {
+        return loanService.findByGroupId(groupId);
+    }
+
     // Validate all loans in a group at once
     @IsGestionnaire
     @PutMapping("/loan/group/{groupId}/validate")

@@ -123,6 +123,11 @@ public class LoanService {
         loanDao.save(loan);
     }
 
+    // Returns all loans sharing the same groupId — used by GET /loan/group/:groupId
+    public List<Loan> findByGroupId(String groupId) {
+        return loanDao.findByGroupId(groupId);
+    }
+
     // Validates all loans sharing the same groupId — gestionnaire approves the whole group at once
     public void validateGroup(String groupId, Integer validatorId) {
         List<Loan> loans = loanDao.findByGroupId(groupId);
