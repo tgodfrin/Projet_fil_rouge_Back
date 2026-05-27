@@ -31,14 +31,14 @@ public class AppUserService {
         return appUserDao.findById(id);
     }
 
-    public void create(AppUser user) {
+    public AppUser create(AppUser user) {
         user.setId(null);
         // Hachage du mot de passe avant persistance en BDD
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         // Charger le Profil manage pour eviter l'erreur "detached entity" de JPA
         Profil managedProfil = profilDao.getReferenceById(user.getProfil().getId());
         user.setProfil(managedProfil);
-        appUserDao.save(user);
+        return appUserDao.save(user);
     }
 
     // Recherche serveur par nom, prenom ou email (insensible a la casse, contenu partiel)

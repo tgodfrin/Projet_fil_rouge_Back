@@ -62,8 +62,11 @@ public class AppUserController {
     @JsonView(AppUserView.class)
     public ResponseEntity<AppUser> create(@RequestBody @Validated AppUserRequest dto) {
         AppUser user = toEntity(dto);
-        appUserService.create(user);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        AppUser saved = appUserService.create(user);
+        // Reload from DB to get fully-initialized Profil proxy (avoids LazyInitializationException)
+        return appUserService.findById(saved.getId())
+                .map(u -> new ResponseEntity<>(u, HttpStatus.CREATED))
+                .orElse(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     // GET /user/search?q= -> recherche serveur par nom, prenom ou email
