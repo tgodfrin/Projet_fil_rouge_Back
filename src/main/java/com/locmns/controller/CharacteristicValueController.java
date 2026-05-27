@@ -41,6 +41,31 @@ public class CharacteristicValueController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
+    // Mettre à jour la valeur d'une caractéristique existante
+    @IsGestionnaire
+    @PutMapping("/characteristic-value/{id}")
+    @JsonView(CharacteristicValueView.class)
+    public ResponseEntity<CharacteristicValue> update(
+            @PathVariable Integer id,
+            @RequestBody @Valid CharacteristicValueRequest dto) {
+        return characteristicValueService.findById(id)
+                .map(cv -> {
+                    cv.setValue(dto.getValue());
+                    return new ResponseEntity<>(characteristicValueService.save(cv), HttpStatus.OK);
+                })
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Supprimer une valeur de caractéristique par son id
+    @IsGestionnaire
+    @DeleteMapping("/characteristic-value/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        if (characteristicValueService.findById(id).isEmpty())
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        characteristicValueService.delete(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     private CharacteristicValue toEntity(CharacteristicValueRequest dto) {
         CharacteristicValue cv = new CharacteristicValue();
         cv.setValue(dto.getValue());
