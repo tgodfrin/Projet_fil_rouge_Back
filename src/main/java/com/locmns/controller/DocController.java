@@ -1,6 +1,7 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.dao.EquipmentDao;
 import com.locmns.dto.DocRequest;
 import com.locmns.model.Doc;
 import com.locmns.model.Equipment;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class DocController {
 
     private final DocService docService;
+    private final EquipmentDao equipmentDao;
 
     // Tous les documents liés à un équipement — utilisé par l'onglet "Documents" de equipment-detail
     @IsUser
@@ -55,12 +57,11 @@ public class DocController {
         Doc doc = new Doc();
         doc.setTitle(dto.getTitle());
         doc.setUrl(dto.getUrl());
+        // Use getReferenceById to get JPA-managed references instead of detached entities
         List<Equipment> equipments = dto.getEquipmentIds() != null
-                ? dto.getEquipmentIds().stream().map(id -> {
-                    Equipment e = new Equipment();
-                    e.setId(id);
-                    return e;
-                  }).collect(Collectors.toList())
+                ? dto.getEquipmentIds().stream()
+                    .map(id -> equipmentDao.getReferenceById(id))
+                    .collect(Collectors.toList())
                 : Collections.emptyList();
         doc.setEquipments(equipments);
         return doc;
