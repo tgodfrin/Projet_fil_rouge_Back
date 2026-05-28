@@ -102,6 +102,21 @@ public class AppUserController {
         }
     }
 
+    // Modifier son propre email (tous les utilisateurs authentifies)
+    @IsUser
+    @PutMapping("/user/me/email")
+    public ResponseEntity<Void> updateMyEmail(
+            @AuthenticationPrincipal AppUserDetails userDetails,
+            @RequestParam @NotBlank(message = "L'email ne peut pas etre vide")
+            @Email(message = "L'email est mal forme") String email) {
+        try {
+            appUserService.updateEmail(userDetails.getUser().getId(), email);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (AppUserService.UserNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     // Modifier uniquement l'email (gestionnaire uniquement — par ID)
     @IsGestionnaire
     @PutMapping("/user/{id}/email")
