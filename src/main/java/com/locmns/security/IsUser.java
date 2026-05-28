@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 // Acces pour tout utilisateur authentifie (tous les roles)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasAnyRole('ROLE_GESTIONNAIRE', 'ROLE_COLLABORATEUR', 'ROLE_INTERVENANT', 'ROLE_STAGIAIRE', 'ROLE_ADMINISTRATEUR')")
+@PreAuthorize("hasAnyAuthority('ROLE_GESTIONNAIRE', 'ROLE_COLLABORATEUR', 'ROLE_INTERVENANT', 'ROLE_STAGIAIRE', 'ROLE_ADMINISTRATEUR')")
 public @interface IsUser {
 }

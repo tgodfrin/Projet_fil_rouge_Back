@@ -117,13 +117,22 @@ public class AppUserController {
         }
     }
 
-    // Modifier uniquement le password (gestionnaire uniquement — par ID)
-    @IsGestionnaire
+    // Modifier le password par ID — gestionnaire peut changer n'importe qui,
+    // utilisateur peut changer uniquement son propre mot de passe
+    @IsUser
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestParam @NotBlank(message = "L'ancien mot de passe ne peut pas etre vide") String oldPassword,
             @RequestParam @NotBlank(message = "Le nouveau mot de passe ne peut pas etre vide") String password) {
+        // Un utilisateur ne peut modifier que son propre mot de passe
+        // Seul un gestionnaire peut modifier le mot de passe d'un autre utilisateur
+        boolean isGestionnaire = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE") || a.getAuthority().equals("ROLE_ADMINISTRATEUR"));
+        if (!isGestionnaire && !userDetails.getUser().getId().equals(id)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         try {
             appUserService.updatePassword(id, oldPassword, password);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
