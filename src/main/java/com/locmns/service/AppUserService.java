@@ -51,6 +51,18 @@ public class AppUserService {
         return appUserDao.findByProfilType(ProfilType.valueOf(profilType));
     }
 
+    // Met à jour les informations d'un utilisateur (sans mot de passe) — réservé aux gestionnaires
+    public AppUser update(Integer id, String name, String lastname, String email, Integer profilId)
+            throws UserNotFoundException {
+        AppUser existing = appUserDao.findById(id).orElseThrow(UserNotFoundException::new);
+        existing.setName(name);
+        existing.setLastname(lastname);
+        existing.setEmail(email);
+        Profil managedProfil = profilDao.getReferenceById(profilId);
+        existing.setProfil(managedProfil);
+        return appUserDao.save(existing);
+    }
+
     // Supprime un utilisateur par son id — réservé aux gestionnaires via le controller
     public void delete(Integer id) throws UserNotFoundException {
         if (!appUserDao.existsById(id)) throw new UserNotFoundException();
