@@ -158,6 +158,18 @@ public class AppUserController {
         }
     }
 
+    // Supprime un utilisateur — réservé aux gestionnaires
+    @IsGestionnaire
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        try {
+            appUserService.delete(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (AppUserService.UserNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     private AppUser toEntity(AppUserRequest dto) {
         AppUser user = new AppUser();
         user.setEmail(dto.getEmail());

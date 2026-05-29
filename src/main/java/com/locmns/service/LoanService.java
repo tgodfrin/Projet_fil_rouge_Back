@@ -31,9 +31,11 @@ public class LoanService {
         return loanDao.findById(id);
     }
 
-    // Retourne tous les loans qui chevauchent une période — utilisé par le planning
+    // Retourne tous les loans VALID qui chevauchent une période — utilisé par le planning gestionnaire
+    // Filtre sur VALID : les emprunts IN_PROGRESS (en attente) et INVALID (refusés) ne doivent pas apparaître
     public List<Loan> findForPlanning(LocalDateTime begin, LocalDateTime end) {
-        return loanDao.findByBeginDateLessThanEqualAndEndDateGreaterThanEqual(end, begin);
+        return loanDao.findByStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
+                StatusLoanType.VALID, end, begin);
     }
 
     public List<Loan> findByRequester(Integer userId) {

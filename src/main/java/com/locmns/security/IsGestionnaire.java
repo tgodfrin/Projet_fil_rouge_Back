@@ -7,9 +7,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-// Acces reserve aux gestionnaires et administrateurs
+// Acces reserve aux gestionnaires
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasAnyAuthority('ROLE_GESTIONNAIRE', 'ROLE_ADMINISTRATEUR')")
+@PreAuthorize("hasAnyAuthority('ROLE_GESTIONNAIRE')")
 public @interface IsGestionnaire {
 }
