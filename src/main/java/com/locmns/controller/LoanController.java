@@ -62,7 +62,11 @@ public class LoanController {
             loanService.create(loan);
             return new ResponseEntity<>(loan, HttpStatus.CREATED);
         } catch (LoanService.UnauthorizedEquipmentFamilyException e) {
+            // Le profil de l'utilisateur n'autorise pas la famille de cet équipement
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (LoanService.EquipmentNotAvailableException e) {
+            // L'équipement est déjà réservé sur cette période (race condition bloquée côté back)
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 

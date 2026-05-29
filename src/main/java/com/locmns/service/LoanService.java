@@ -59,9 +59,10 @@ public class LoanService {
         return loanDao.findByStatusType(StatusLoanType.IN_PROGRESS);
     }
 
-    // @Transactional nécessaire pour charger la collection lazy profil.equipmentFamilies
+    // @Transactional garantit que la vérification de dispo et le save() sont atomiques
+    // → deux requêtes simultanées ne peuvent pas passer le check en même temps
     @Transactional
-    public void create(Loan loan) throws UnauthorizedEquipmentFamilyException {
+    public void create(Loan loan) throws UnauthorizedEquipmentFamilyException, EquipmentNotAvailableException {
         loan.setId(null);
 
         // Chargement complet du demandeur pour accéder à son profil et ses familles autorisées
@@ -79,6 +80,21 @@ public class LoanService {
 
         if (!isAllowed) {
             throw new UnauthorizedEquipmentFamilyException();
+        }
+
+        // Vérifie qu'aucun emprunt actif (non-INVALID) ne chevauche la période demandée
+        // Ce check à l'intérieur de la @Transactional empêche la race condition :
+        // si deux requêtes arrivent simultanément, l'une attendra que l'autre termine
+        // avant d'exécuter son propre check → le second échouera sur un conflit déjà sauvegardé
+        boolean conflict = loanDao.existsByEquipmentAndStatusTypeNotAndBeginDateLessThanAndEndDateGreaterThan(
+                equipment,
+                StatusLoanType.INVALID,
+                loan.getEndDate(),
+                loan.getBeginDate()
+        );
+
+        if (conflict) {
+            throw new EquipmentNotAvailableException();
         }
 
         // Remplace les POJOs détachés par les entités managées pour éviter l'erreur JPA
@@ -155,4 +171,8 @@ public class LoanService {
 
     // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé
     public static class UnauthorizedEquipmentFamilyException extends Exception {}
+
+    // Levée quand un emprunt actif chevauche déjà la période demandée pour cet équipement
+    // Permet de bloquer la race condition côté back, indépendamment du check côté front
+    public static class EquipmentNotAvailableException extends Exception {}
 }

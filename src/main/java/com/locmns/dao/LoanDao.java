@@ -41,4 +41,15 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
 
     // Returns all loans sharing the same groupId — used for group validation/refusal
     List<Loan> findByGroupId(String groupId);
+
+    // Vérifie si un emprunt non-INVALID chevauche la période donnée pour un équipement précis
+    // Utilisé dans LoanService.create() pour détecter les conflits avant de sauvegarder
+    // Condition de chevauchement : beginDate < endDate demandée ET endDate > beginDate demandée
+    // statusType != INVALID → on ignore les demandes refusées, elles ne bloquent pas l'équipement
+    boolean existsByEquipmentAndStatusTypeNotAndBeginDateLessThanAndEndDateGreaterThan(
+            Equipment equipment,
+            StatusLoanType excludedStatus,
+            LocalDateTime requestedEndDate,
+            LocalDateTime requestedBeginDate
+    );
 }
