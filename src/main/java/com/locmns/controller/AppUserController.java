@@ -2,6 +2,7 @@ package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.dto.AppUserRequest;
+import com.locmns.dto.AppUserUpdateRequest;
 import com.locmns.model.AppUser;
 import com.locmns.model.Profil;
 import com.locmns.service.AppUserService;
@@ -155,6 +156,23 @@ public class AppUserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (AppUserService.InvalidPasswordException e) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    // Met à jour les informations d'un utilisateur (sans mot de passe) — réservé aux gestionnaires
+    @IsGestionnaire
+    @PutMapping("/user/{id}")
+    @JsonView(AppUserView.class)
+    public ResponseEntity<AppUser> update(
+            @PathVariable Integer id,
+            @RequestBody @Validated AppUserUpdateRequest dto) {
+        try {
+            AppUser updated = appUserService.update(id, dto.getName(), dto.getLastname(), dto.getEmail(), dto.getProfilId());
+            return appUserService.findById(updated.getId())
+                    .map(u -> new ResponseEntity<>(u, HttpStatus.OK))
+                    .orElse(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        } catch (AppUserService.UserNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
