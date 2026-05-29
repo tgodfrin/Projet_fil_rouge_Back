@@ -145,7 +145,7 @@ public class AppUserController {
         // Un utilisateur ne peut modifier que son propre mot de passe
         // Seul un gestionnaire peut modifier le mot de passe d'un autre utilisateur
         boolean isGestionnaire = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE") || a.getAuthority().equals("ROLE_ADMINISTRATEUR"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE"));
         if (!isGestionnaire && !userDetails.getUser().getId().equals(id)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
