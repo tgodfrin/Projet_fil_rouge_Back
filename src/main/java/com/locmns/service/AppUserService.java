@@ -51,6 +51,12 @@ public class AppUserService {
         return appUserDao.findByProfilType(ProfilType.valueOf(profilType));
     }
 
+    // Supprime un utilisateur par son id — réservé aux gestionnaires via le controller
+    public void delete(Integer id) throws UserNotFoundException {
+        if (!appUserDao.existsById(id)) throw new UserNotFoundException();
+        appUserDao.deleteById(id);
+    }
+
     public void updateEmail(Integer id, String newEmail) throws UserNotFoundException {
         AppUser existing = appUserDao.findById(id)
                 .orElseThrow(UserNotFoundException::new);

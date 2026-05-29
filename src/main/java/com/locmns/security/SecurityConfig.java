@@ -56,10 +56,10 @@ public class SecurityConfig {
                 .build();
     }
 
-    // CORS : autorise toutes les origines (a restreindre en production)
+    // CORS : autorise uniquement le front Angular en dev (remplacer par l'URL de prod au déploiement)
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
         config.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
 

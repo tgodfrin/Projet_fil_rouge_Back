@@ -662,11 +662,6 @@ INSERT INTO fait_reference (doc_id, equipment_id)
 
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
-  WHERE d.title = 'Guide de démarrage iPad Pro' AND e.reference = 'REF-TAB-001'
-    AND NOT EXISTS (SELECT 1 FROM fait_reference fr WHERE fr.doc_id = d.id AND fr.equipment_id = e.id);
-
-INSERT INTO fait_reference (doc_id, equipment_id)
-  SELECT d.id, e.id FROM doc d, equipment e
   WHERE d.title = 'Documentation Dell XPS 15' AND e.reference = 'REF-PC-002'
     AND NOT EXISTS (SELECT 1 FROM fait_reference fr WHERE fr.doc_id = d.id AND fr.equipment_id = e.id);
 
