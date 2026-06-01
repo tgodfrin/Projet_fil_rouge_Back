@@ -54,7 +54,7 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     boolean existsByEquipmentAndStatusTypeNotAndBeginDateLessThanAndEndDateGreaterThan(
             Equipment equipment,
             StatusLoanType excludedStatus,
-            LocalDateTime requestedEndDate,
-            LocalDateTime requestedBeginDate
+            LocalDate requestedEndDate,
+            LocalDate requestedBeginDate
     );
 }
