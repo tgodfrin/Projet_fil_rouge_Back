@@ -214,11 +214,10 @@ public class LoanService {
     // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé
     public static class UnauthorizedEquipmentFamilyException extends Exception {}
 
-<<<<<<< HEAD
     // Levée quand un emprunt actif chevauche déjà la période demandée pour cet équipement
     // Permet de bloquer la race condition côté back, indépendamment du check côté front
     public static class EquipmentNotAvailableException extends Exception {}
-=======
+
     // Levée quand l'utilisateur tente d'agir sur un emprunt qui ne lui appartient pas
     public static class ForbiddenException extends Exception {}
 
@@ -226,5 +225,4 @@ public class LoanService {
     public static class InvalidExtensionException extends Exception {
         public InvalidExtensionException(String message) { super(message); }
     }
->>>>>>> feature/global-fixes
 }
