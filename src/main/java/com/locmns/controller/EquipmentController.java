@@ -14,7 +14,7 @@ import com.locmns.security.IsGestionnaire;
 import com.locmns.security.IsUser;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,12 +41,13 @@ public class EquipmentController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    // Accepte des dates ISO YYYY-MM-DD (sans heure) — cohérent avec LocalDate côté Loan
     @IsUser
     @GetMapping("/equipment/available")
     @JsonView(EquipmentView.class)
     public List<Equipment> getAvailable(
-            @RequestParam LocalDateTime begin,
-            @RequestParam LocalDateTime end) {
+            @RequestParam LocalDate begin,
+            @RequestParam LocalDate end) {
         return equipmentService.findAvailableForPeriod(begin, end);
     }
 

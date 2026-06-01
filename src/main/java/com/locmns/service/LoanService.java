@@ -2,15 +2,19 @@ package com.locmns.service;
 
 import com.locmns.dao.AppUserDao;
 import com.locmns.dao.EquipmentDao;
+import com.locmns.dao.EventDao;
 import com.locmns.dao.LoanDao;
+import com.locmns.enums.EventType;
 import com.locmns.enums.StatusLoanType;
 import com.locmns.model.AppUser;
 import com.locmns.model.Equipment;
+import com.locmns.model.Event;
 import com.locmns.model.Loan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +26,7 @@ public class LoanService {
     private final LoanDao      loanDao;
     private final AppUserDao   appUserDao;
     private final EquipmentDao equipmentDao;
+    private final EventDao     eventDao;
 
     public List<Loan> findAll() {
         return loanDao.findAll();
@@ -33,7 +38,7 @@ public class LoanService {
 
     // Retourne tous les loans VALID qui chevauchent une période — utilisé par le planning gestionnaire
     // Filtre sur VALID : les emprunts IN_PROGRESS (en attente) et INVALID (refusés) ne doivent pas apparaître
-    public List<Loan> findForPlanning(LocalDateTime begin, LocalDateTime end) {
+    public List<Loan> findForPlanning(LocalDate begin, LocalDate end) {
         return loanDao.findByStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
                 StatusLoanType.VALID, end, begin);
     }
@@ -53,7 +58,7 @@ public class LoanService {
 
     // Retourne les emprunts en retard : VALID dont endDate est dépassée
     public List<Loan> findOverdue() {
-        return loanDao.findByEndDateBeforeAndStatusType(LocalDateTime.now(), StatusLoanType.VALID);
+        return loanDao.findByEndDateBeforeAndStatusType(LocalDate.now(), StatusLoanType.VALID);
     }
 
     // Retourne les demandes en attente de validation gestionnaire (IN_PROGRESS)
@@ -111,10 +116,10 @@ public class LoanService {
     }
 
     // Le gestionnaire valide une demande : IN_PROGRESS → VALID
+    // getReferenceById retourne un proxy JPA managé — évite une requête SELECT inutile
     public void validate(Integer loanId, Integer validatorId) throws LoanNotFoundException {
         Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
-        AppUser validator = new AppUser();
-        validator.setId(validatorId);
+        AppUser validator = appUserDao.getReferenceById(validatorId);
         loan.setValidator(validator);
         loan.setStatusType(StatusLoanType.VALID);
         loan.setStatusDate(LocalDateTime.now());
@@ -130,14 +135,12 @@ public class LoanService {
     }
 
     // Retour du matériel : VALID → TERMINE
-    // On remplit realEndDate avec l'heure actuelle — c'est la date de retour réelle
-    // (peut différer de endDate si retour anticipé ou en retard)
+    // realEndDate = date effective du retour physique (sans heure, cohérent avec beginDate/endDate)
     public void returnEquipment(Integer loanId) throws LoanNotFoundException {
         Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
         loan.setStatusType(StatusLoanType.TERMINE);
         loan.setStatusDate(LocalDateTime.now());
-        // realEndDate = date effective du retour physique du matériel
-        loan.setRealEndDate(LocalDateTime.now());
+        loan.setRealEndDate(LocalDate.now());
         loanDao.save(loan);
     }
 
@@ -149,8 +152,7 @@ public class LoanService {
     // Validates all loans sharing the same groupId — gestionnaire approves the whole group at once
     public void validateGroup(String groupId, Integer validatorId) {
         List<Loan> loans = loanDao.findByGroupId(groupId);
-        AppUser validator = new AppUser();
-        validator.setId(validatorId);
+        AppUser validator = appUserDao.getReferenceById(validatorId);
         loans.forEach(loan -> {
             loan.setValidator(validator);
             loan.setStatusType(StatusLoanType.VALID);
@@ -169,12 +171,60 @@ public class LoanService {
         loanDao.saveAll(loans);
     }
 
+    /**
+     * Extends a loan's end date.
+     * Checks: requester ownership, valid status (VALID or IN_PROGRESS), new date must be after current end date.
+     * Creates an EXTENSION event on success.
+     */
+    public Loan extend(Integer loanId, Integer requesterId, LocalDate newEndDate)
+            throws LoanNotFoundException, ForbiddenException, InvalidExtensionException {
+        Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
+
+        // Only the requester can extend their own loan
+        if (!loan.getRequester().getId().equals(requesterId)) {
+            throw new ForbiddenException();
+        }
+
+        // Only active loans can be extended
+        if (loan.getStatusType() != StatusLoanType.VALID
+                && loan.getStatusType() != StatusLoanType.IN_PROGRESS) {
+            throw new InvalidExtensionException("Seuls les emprunts en cours ou en attente peuvent être prolongés");
+        }
+
+        // New date must be strictly after current end date
+        if (!newEndDate.isAfter(loan.getEndDate())) {
+            throw new InvalidExtensionException("La nouvelle date doit être après la date de fin actuelle");
+        }
+
+        loan.setEndDate(newEndDate);
+        loanDao.save(loan);
+
+        // Record the extension as an event
+        Event event = new Event();
+        event.setType(EventType.EXTENSION);
+        event.setDescription("Extension jusqu'au " + newEndDate);
+        event.setLoan(loan);
+        eventDao.save(event);
+
+        return loan;
+    }
+
     public static class LoanNotFoundException extends Exception {}
 
     // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé
     public static class UnauthorizedEquipmentFamilyException extends Exception {}
 
+<<<<<<< HEAD
     // Levée quand un emprunt actif chevauche déjà la période demandée pour cet équipement
     // Permet de bloquer la race condition côté back, indépendamment du check côté front
     public static class EquipmentNotAvailableException extends Exception {}
+=======
+    // Levée quand l'utilisateur tente d'agir sur un emprunt qui ne lui appartient pas
+    public static class ForbiddenException extends Exception {}
+
+    // Levée quand les règles métier de prolongation ne sont pas respectées
+    public static class InvalidExtensionException extends Exception {
+        public InvalidExtensionException(String message) { super(message); }
+    }
+>>>>>>> feature/global-fixes
 }

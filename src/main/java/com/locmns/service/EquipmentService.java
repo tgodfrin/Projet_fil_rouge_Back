@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -44,9 +45,11 @@ public class EquipmentService {
     }
 
     // Retourne les équipements disponibles sur une période donnée
-    // Utilise la query JPQL de EquipmentDao qui filtre en BDD
-    public List<Equipment> findAvailableForPeriod(LocalDateTime begin, LocalDateTime end) {
-        List<Equipment> available = equipmentDao.findAvailableEquipments(begin, end);
+    // Convertit LocalDate → LocalDateTime pour la query JPQL (qui compare aussi StatusEquipment)
+    public List<Equipment> findAvailableForPeriod(LocalDate begin, LocalDate end) {
+        LocalDateTime beginDt = begin.atStartOfDay();
+        LocalDateTime endDt   = end.atTime(23, 59, 59);
+        List<Equipment> available = equipmentDao.findAvailableEquipments(beginDt, endDt);
         available.forEach(e -> e.setStatus("DISPONIBLE"));
         return available;
     }

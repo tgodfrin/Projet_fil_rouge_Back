@@ -4,17 +4,17 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
 public class LoanRequest {
 
     @NotNull(message = "La date de début est obligatoire")
-    private LocalDateTime beginDate;
+    private LocalDate beginDate;
 
     @NotNull(message = "La date de fin est obligatoire")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     @NotNull(message = "Le demandeur est obligatoire")
     private Integer requesterId;

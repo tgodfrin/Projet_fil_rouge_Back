@@ -6,6 +6,7 @@ import com.locmns.dto.AppUserUpdateRequest;
 import com.locmns.model.AppUser;
 import com.locmns.model.Profil;
 import com.locmns.service.AppUserService;
+import com.locmns.service.EmailService;
 import com.locmns.view.AppUserView;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -28,6 +29,7 @@ import java.util.Optional;
 public class AppUserController {
 
     private final AppUserService appUserService;
+    private final EmailService   emailService;
 
     // Seuls les gestionnaires et admins peuvent lister tous les utilisateurs
     @IsGestionnaire
@@ -151,6 +153,12 @@ public class AppUserController {
         }
         try {
             appUserService.updatePassword(id, oldPassword, password);
+            // When a gestionnaire changes another user's password, notify them by email
+            if (isGestionnaire && !userDetails.getUser().getId().equals(id)) {
+                appUserService.findById(id).ifPresent(targetUser ->
+                    emailService.sendPasswordEmail(targetUser.getEmail(), targetUser.getName(), password)
+                );
+            }
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
