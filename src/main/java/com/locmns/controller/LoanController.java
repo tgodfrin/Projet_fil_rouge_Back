@@ -1,6 +1,7 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.dto.ExtendLoanRequest;
 import com.locmns.dto.LoanRequest;
 import com.locmns.model.AppUser;
 import com.locmns.model.Equipment;
@@ -17,7 +18,7 @@ import com.locmns.security.IsUser;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,13 +67,13 @@ public class LoanController {
         }
     }
 
-    // Planning accessible a tous les roles
+    // Planning accessible a tous les roles — accepte des dates ISO YYYY-MM-DD (sans heure)
     @IsUser
     @GetMapping("/loan/planning")
     @JsonView(LoanView.class)
     public List<Loan> getForPlanning(
-            @RequestParam LocalDateTime begin,
-            @RequestParam LocalDateTime end) {
+            @RequestParam LocalDate begin,
+            @RequestParam LocalDate end) {
         return loanService.findForPlanning(begin, end);
     }
 
@@ -133,6 +134,26 @@ public class LoanController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (LoanService.LoanNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Extend a loan's end date — authenticated user must be the requester
+    @IsUser
+    @PutMapping("/loan/{id}/extend")
+    @JsonView(LoanView.class)
+    public ResponseEntity<Loan> extendLoan(
+            @PathVariable Integer id,
+            @RequestBody @Valid ExtendLoanRequest dto,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        try {
+            Loan updated = loanService.extend(id, userDetails.getUser().getId(), dto.getNewEndDate());
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (LoanService.LoanNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (LoanService.ForbiddenException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (LoanService.InvalidExtensionException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 

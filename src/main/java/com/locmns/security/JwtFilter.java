@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
@@ -21,6 +23,8 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
 
     protected final UserDetailsService userDetailsService;
 
@@ -59,8 +63,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.setContext(context);
 
             } catch (Exception e) {
-                // Log de l'exception pour debug
-                System.err.println("[JwtFilter] Echec parsing token : " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                log.warn("JWT token invalide ou expiré : {}", e.getMessage());
             }
         }
 

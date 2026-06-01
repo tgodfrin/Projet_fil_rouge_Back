@@ -6,7 +6,7 @@ import com.locmns.model.Equipment;
 import com.locmns.model.Loan;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface LoanDao extends JpaRepository<Loan, Integer> {
@@ -20,8 +20,8 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     List<Loan> findByStatusType(StatusLoanType statusType);
 
     // Retourne les emprunts dont la date de fin est dépassée ET dont le statut correspond
-    // Ex: findByEndDateBeforeAndStatusType(now, IN_PROGRESS) → détection des retards
-    List<Loan> findByEndDateBeforeAndStatusType(LocalDateTime date, StatusLoanType statusType);
+    // Utilisé pour détecter les retards (endDate < today + statut VALID)
+    List<Loan> findByEndDateBeforeAndStatusType(LocalDate date, StatusLoanType statusType);
 
     // Retourne tout l'historique des emprunts pour un équipement précis
     // Utilisé pour la vue détail équipement
@@ -29,12 +29,12 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
 
     // Retourne tous les emprunts qui chevauchent une période donnée (vue planning)
     // Logique : un emprunt chevauche si son début <= fin de la fenêtre ET sa fin >= début de la fenêtre
-    List<Loan> findByBeginDateLessThanEqualAndEndDateGreaterThanEqual(LocalDateTime end, LocalDateTime begin);
+    List<Loan> findByBeginDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate end, LocalDate begin);
 
     // Même logique de chevauchement mais filtrée sur un statut précis
     // Utilisé par findForPlanning() pour n'afficher que les emprunts VALID dans le planning gestionnaire
     List<Loan> findByStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
-            StatusLoanType status, LocalDateTime end, LocalDateTime begin);
+            StatusLoanType status, LocalDate end, LocalDate begin);
 
     // Vérifie s'il existe au moins un emprunt avec ce statut pour cet équipement
     // Utilisé par EquipmentService pour calculer le statut EN_PRET (loan IN_PROGRESS actif)

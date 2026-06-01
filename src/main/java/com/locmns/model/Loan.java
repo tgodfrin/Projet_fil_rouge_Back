@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -25,22 +26,22 @@ public class Loan {
     @JsonView({LoanView.class, EventView.class})
     protected Integer id;
 
-    // Date de début souhaitée par le demandeur — fournie à la création
+    // Date de début souhaitée par le demandeur — fournie à la création (sans heure)
     @Column(nullable = false)
     @NotNull
     @JsonView(LoanView.class)
-    private LocalDateTime beginDate;
+    private LocalDate beginDate;
 
-    // Date de fin prévue — fournie à la création
+    // Date de fin prévue — fournie à la création (sans heure)
     @Column(nullable = false)
     @NotNull
     @JsonView(LoanView.class)
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     // Date de retour réelle — null jusqu'au retour effectif du matériel (action "return")
     @Column(nullable = true)
     @JsonView(LoanView.class)
-    private LocalDateTime realEndDate;
+    private LocalDate realEndDate;
 
     // Statut actuel du cycle de vie : VALID → IN_PROGRESS → TERMINE (ou INVALID)
     // Géré uniquement par LoanService — jamais modifié directement par le front
