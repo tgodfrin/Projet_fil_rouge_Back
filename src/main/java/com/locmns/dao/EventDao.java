@@ -29,6 +29,11 @@ public interface EventDao extends JpaRepository<Event, Integer> {
     @Query("DELETE FROM Event e WHERE e.loan.equipment.id = :equipmentId")
     void deleteByEquipmentId(@Param("equipmentId") Integer equipmentId);
 
+    // Retourne tous les events liés aux loans d'un utilisateur donné (via loan.requester.id)
+    // Utilisé pour GET /event/user — affiche les demandes retour/prolongation côté user
+    // Trié du plus récent au plus ancien
+    List<Event> findByLoan_Requester_IdOrderByCreatedAtDesc(Integer requesterId);
+
     // Supprime tous les events liés à une liste de loans
     // Used before cascade-deleting a user's pending (IN_PROGRESS) loans
     @Modifying

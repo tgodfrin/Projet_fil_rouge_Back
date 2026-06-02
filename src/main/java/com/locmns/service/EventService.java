@@ -44,6 +44,16 @@ public class EventService {
         return eventDao.findByReadingDateIsNull();
     }
 
+    // Retourne tous les events liés aux loans du user connecté
+    // Filtré sur EARLY_RETURN et EXTENSION uniquement (les BREAKDOWN sont pour le gestionnaire)
+    public List<Event> findByRequester(Integer userId) {
+        return eventDao.findByLoan_Requester_IdOrderByCreatedAtDesc(userId)
+                .stream()
+                .filter(e -> e.getType() == com.locmns.enums.EventType.EARLY_RETURN
+                          || e.getType() == com.locmns.enums.EventType.EXTENSION)
+                .toList();
+    }
+
     // Marque un événement comme lu en renseignant sa readingDate à maintenant
     public Optional<Event> markAsRead(Integer id) {
         Optional<Event> opt = eventDao.findById(id);

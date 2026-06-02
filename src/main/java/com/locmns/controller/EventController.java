@@ -7,9 +7,11 @@ import com.locmns.model.Loan;
 import com.locmns.service.EventService;
 import com.locmns.view.EventView;
 import jakarta.validation.Valid;
+import com.locmns.security.AppUserDetails;
 import com.locmns.security.IsGestionnaire;
 import com.locmns.security.IsUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +41,15 @@ public class EventController {
     @JsonView(EventView.class)
     public List<Event> getByLoan(@PathVariable Integer loanId) {
         return eventService.findByLoan(loanId);
+    }
+
+    // Retourne les events EARLY_RETURN et EXTENSION du user connecté (via JWT)
+    // Utilisé côté user pour afficher ses demandes de retour anticipé et prolongation
+    @IsUser
+    @GetMapping("/event/user")
+    @JsonView(EventView.class)
+    public List<Event> getMyEvents(@AuthenticationPrincipal AppUserDetails userDetails) {
+        return eventService.findByRequester(userDetails.getUser().getId());
     }
 
     // All events — allows the front to keep read incidents visible after navigation
