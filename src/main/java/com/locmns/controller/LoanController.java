@@ -161,6 +161,25 @@ public class LoanController {
         }
     }
 
+    // Gestionnaire validates an extension request from the alert list
+    // No requester ownership check — gestionnaire has authority to approve any extension
+    // Accepts overdue (VALID + past endDate) loans as well as active ones
+    @IsGestionnaire
+    @PutMapping("/loan/{id}/validate-extension")
+    @JsonView(LoanView.class)
+    public ResponseEntity<Loan> validateExtension(
+            @PathVariable Integer id,
+            @RequestBody @Valid ExtendLoanRequest dto) {
+        try {
+            Loan updated = loanService.validateExtension(id, dto.getNewEndDate());
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (LoanService.LoanNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (LoanService.InvalidExtensionException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     // Get all loans sharing the same groupId — used by front to display group detail
     @IsUser
     @GetMapping("/loan/group/{groupId}")

@@ -209,6 +209,32 @@ public class LoanService {
         return loan;
     }
 
+    /**
+     * Validates an extension request on behalf of a gestionnaire — no requester ownership check.
+     * Used when the gestionnaire approves an EXTENSION event from the alert list.
+     * The new end date is extracted from the event description by the front.
+     */
+    public Loan validateExtension(Integer loanId, LocalDate newEndDate)
+            throws LoanNotFoundException, InvalidExtensionException {
+        Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
+
+        // Only VALID or IN_PROGRESS loans can be extended (includes overdue VALID loans)
+        if (loan.getStatusType() != StatusLoanType.VALID
+                && loan.getStatusType() != StatusLoanType.IN_PROGRESS) {
+            throw new InvalidExtensionException("Seuls les emprunts en cours ou en attente peuvent être prolongés");
+        }
+
+        // New date must be strictly after the current end date
+        if (!newEndDate.isAfter(loan.getEndDate())) {
+            throw new InvalidExtensionException("La nouvelle date doit être après la date de fin actuelle");
+        }
+
+        loan.setEndDate(newEndDate);
+        loanDao.save(loan);
+
+        return loan;
+    }
+
     public static class LoanNotFoundException extends Exception {}
 
     // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé
