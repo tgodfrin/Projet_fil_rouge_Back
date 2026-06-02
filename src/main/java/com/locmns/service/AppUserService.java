@@ -77,9 +77,8 @@ public class AppUserService {
      * Règles métier :
      * - Si l'utilisateur a au moins un emprunt VALID (matériel physiquement sorti)
      *   → refus avec UserHasLoansException (409)
-     * - Si l'utilisateur n'a que des demandes IN_PROGRESS (pas encore validées)
-     *   → suppression en cascade : events → loans → user
-     * - Si aucun emprunt → suppression directe
+     * - Sinon (IN_PROGRESS, TERMINE, INVALID ou aucun emprunt)
+     *   → suppression en cascade : events → tous les loans → user
      */
     @Transactional
     public void delete(Integer id) throws UserNotFoundException, UserHasLoansException {
@@ -90,11 +89,12 @@ public class AppUserService {
             throw new UserHasLoansException();
         }
 
-        // Cascade-delete pending requests (IN_PROGRESS) and their events
-        List<Loan> pendingLoans = loanDao.findByRequesterAndStatusType(user, StatusLoanType.IN_PROGRESS);
-        if (!pendingLoans.isEmpty()) {
-            eventDao.deleteByLoanIn(pendingLoans);
-            loanDao.deleteAll(pendingLoans);
+        // Cascade-delete ALL loans (IN_PROGRESS, TERMINE, INVALID) and their events
+        // Required to avoid FK constraint violations on the loan and event tables
+        List<Loan> allLoans = loanDao.findByRequester(user);
+        if (!allLoans.isEmpty()) {
+            eventDao.deleteByLoanIn(allLoans);
+            loanDao.deleteAll(allLoans);
         }
 
         appUserDao.deleteById(id);
