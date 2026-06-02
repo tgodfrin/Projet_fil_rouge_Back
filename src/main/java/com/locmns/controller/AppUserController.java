@@ -185,6 +185,7 @@ public class AppUserController {
     }
 
     // Supprime un utilisateur — réservé aux gestionnaires
+    // Retourne 409 si l'utilisateur a des emprunts ou des données liées en base
     @IsGestionnaire
     @DeleteMapping("/user/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
@@ -193,6 +194,8 @@ public class AppUserController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (AppUserService.UserHasLoansException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 

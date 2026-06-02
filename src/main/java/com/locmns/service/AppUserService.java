@@ -6,6 +6,7 @@ import com.locmns.enums.ProfilType;
 import com.locmns.model.AppUser;
 import com.locmns.model.Profil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class AppUserService {
 
     public static class UserNotFoundException extends Exception {}
     public static class InvalidPasswordException extends Exception {}
+    public static class UserHasLoansException extends Exception {}
 
     private final AppUserDao      appUserDao;
     private final ProfilDao       profilDao;
@@ -64,9 +66,14 @@ public class AppUserService {
     }
 
     // Supprime un utilisateur par son id — réservé aux gestionnaires via le controller
-    public void delete(Integer id) throws UserNotFoundException {
+    // Lance UserHasLoansException si l'utilisateur a des emprunts liés (contrainte FK)
+    public void delete(Integer id) throws UserNotFoundException, UserHasLoansException {
         if (!appUserDao.existsById(id)) throw new UserNotFoundException();
-        appUserDao.deleteById(id);
+        try {
+            appUserDao.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new UserHasLoansException();
+        }
     }
 
     public void updateEmail(Integer id, String newEmail) throws UserNotFoundException {
