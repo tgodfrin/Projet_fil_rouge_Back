@@ -210,6 +210,17 @@ public class LoanService {
     }
 
     /**
+     * Gestionnaire validates an early return request where the return date is in the future.
+     * Updates the loan's endDate to the requested early return date — the loan stays VALID.
+     * The actual TERMINE transition happens separately when the equipment is physically received.
+     */
+    public Loan validateEarlyReturn(Integer loanId, LocalDate newEndDate) throws LoanNotFoundException {
+        Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
+        loan.setEndDate(newEndDate);
+        return loanDao.save(loan);
+    }
+
+    /**
      * Validates an extension request on behalf of a gestionnaire — no requester ownership check.
      * Used when the gestionnaire approves an EXTENSION event from the alert list.
      * The new end date is extracted from the event description by the front.

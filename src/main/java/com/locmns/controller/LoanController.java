@@ -161,6 +161,22 @@ public class LoanController {
         }
     }
 
+    // Gestionnaire validates an early return request — updates endDate to the requested date (stays VALID)
+    // The actual TERMINE is triggered separately when the equipment is physically received
+    @IsGestionnaire
+    @PutMapping("/loan/{id}/validate-early-return")
+    @JsonView(LoanView.class)
+    public ResponseEntity<Loan> validateEarlyReturn(
+            @PathVariable Integer id,
+            @RequestBody @Valid ExtendLoanRequest dto) {
+        try {
+            Loan updated = loanService.validateEarlyReturn(id, dto.getNewEndDate());
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (LoanService.LoanNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     // Gestionnaire validates an extension request from the alert list
     // No requester ownership check — gestionnaire has authority to approve any extension
     // Accepts overdue (VALID + past endDate) loans as well as active ones
