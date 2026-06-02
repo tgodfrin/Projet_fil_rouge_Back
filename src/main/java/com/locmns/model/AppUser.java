@@ -35,12 +35,12 @@ public class AppUser {
     @JsonView(AppUserView.class)
     protected String email;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @NotBlank(groups = OnCreate.class, message = "Le nom ne peut pas etre vide")
     @JsonView({AppUserView.class, LoanView.class})
     protected String name;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @NotBlank(groups = OnCreate.class, message = "Le prenom ne peut pas etre vide")
     @JsonView({AppUserView.class, LoanView.class})
     protected String lastname;

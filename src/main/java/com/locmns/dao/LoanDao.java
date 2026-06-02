@@ -36,6 +36,14 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     List<Loan> findByStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
             StatusLoanType status, LocalDate end, LocalDate begin);
 
+    // Vérifie si un utilisateur a au moins un emprunt avec un statut donné
+    // Utilisé avant suppression d'un user pour bloquer si VALID, ou cascader si IN_PROGRESS
+    boolean existsByRequesterAndStatusType(AppUser requester, StatusLoanType statusType);
+
+    // Retourne tous les emprunts d'un utilisateur avec un statut précis
+    // Utilisé pour récupérer les demandes IN_PROGRESS avant suppression en cascade
+    List<Loan> findByRequesterAndStatusType(AppUser requester, StatusLoanType statusType);
+
     // Vérifie s'il existe au moins un emprunt avec ce statut pour cet équipement
     // Utilisé par EquipmentService pour calculer le statut EN_PRET (loan IN_PROGRESS actif)
     // exists... est plus léger que find... car renvoie un boolean sans charger l'objet entier

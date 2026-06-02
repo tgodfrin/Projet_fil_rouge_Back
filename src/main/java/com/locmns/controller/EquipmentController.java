@@ -10,8 +10,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.locmns.security.AppUserDetails;
 import com.locmns.security.IsGestionnaire;
 import com.locmns.security.IsUser;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -39,6 +41,26 @@ public class EquipmentController {
         Optional<Equipment> opt = equipmentService.findById(id);
         if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
+    }
+
+    // Catalogue filtré par profil — retourne uniquement les équipements des familles autorisées
+    // L'userId est lu depuis le token JWT, jamais fourni par le client
+    @IsUser
+    @GetMapping("/equipment/catalogue")
+    @JsonView(EquipmentView.class)
+    public List<Equipment> getCatalogue(@AuthenticationPrincipal AppUserDetails userDetails) {
+        return equipmentService.findForCatalogue(userDetails.getUser().getId());
+    }
+
+    // Catalogue disponible sur une période, filtré par profil
+    @IsUser
+    @GetMapping("/equipment/catalogue/available")
+    @JsonView(EquipmentView.class)
+    public List<Equipment> getCatalogueAvailable(
+            @RequestParam LocalDate begin,
+            @RequestParam LocalDate end,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return equipmentService.findAvailableForCatalogue(userDetails.getUser().getId(), begin, end);
     }
 
     // Accepte des dates ISO YYYY-MM-DD (sans heure) — cohérent avec LocalDate côté Loan

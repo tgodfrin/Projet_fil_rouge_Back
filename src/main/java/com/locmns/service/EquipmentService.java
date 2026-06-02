@@ -1,5 +1,6 @@
 package com.locmns.service;
 
+import com.locmns.dao.AppUserDao;
 import com.locmns.dao.CharacteristicValueDao;
 import com.locmns.dao.DocDao;
 import com.locmns.dao.EquipmentDao;
@@ -7,6 +8,7 @@ import com.locmns.dao.EventDao;
 import com.locmns.dao.LoanDao;
 import com.locmns.dao.StatusEquipmentDao;
 import com.locmns.enums.StatusLoanType;
+import com.locmns.model.AppUser;
 import com.locmns.model.Equipment;
 import com.locmns.model.EquipmentFamily;
 import com.locmns.model.StatusEquipment;
@@ -29,6 +31,7 @@ public class EquipmentService {
     private final CharacteristicValueDao characteristicValueDao;
     private final DocDao docDao;
     private final EventDao eventDao;
+    private final AppUserDao appUserDao;
 
     // Récupère tous les équipements et calcule leur statut avant de les retourner
     public List<Equipment> findAll() {
@@ -59,6 +62,34 @@ public class EquipmentService {
         List<Equipment> results = equipmentDao.findByEquipmentNameContainingIgnoreCase(q);
         results.forEach(this::setCalculatedStatus);
         return results;
+    }
+
+    /**
+     * Retourne uniquement les équipements dont la famille est autorisée par le profil de l'utilisateur.
+     * Utilisé pour le catalogue côté utilisateur — masque les familles hors périmètre.
+     * Si le profil n'a aucune famille configurée, retourne une liste vide.
+     */
+    public List<Equipment> findForCatalogue(Integer userId) {
+        AppUser user = appUserDao.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        List<EquipmentFamily> allowedFamilies = user.getProfil().getEquipmentFamilies();
+        if (allowedFamilies.isEmpty()) return List.of();
+
+        List<Equipment> results = equipmentDao.findByEquipmentFamilyIn(allowedFamilies);
+        results.forEach(this::setCalculatedStatus);
+        return results;
+    }
+
+    // Retourne les équipements disponibles sur une période donnée, filtrés par profil utilisateur
+    public List<Equipment> findAvailableForCatalogue(Integer userId, LocalDate begin, LocalDate end) {
+        AppUser user = appUserDao.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        List<EquipmentFamily> allowedFamilies = user.getProfil().getEquipmentFamilies();
+        if (allowedFamilies.isEmpty()) return List.of();
+
+        LocalDateTime beginDt = begin.atStartOfDay();
+        LocalDateTime endDt   = end.atTime(23, 59, 59);
+        List<Equipment> available = equipmentDao.findAvailableEquipmentsInFamilies(beginDt, endDt, allowedFamilies);
+        available.forEach(e -> e.setStatus("DISPONIBLE"));
+        return available;
     }
 
     // Filtre par famille + calcul statut

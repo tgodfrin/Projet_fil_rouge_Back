@@ -28,4 +28,10 @@ public interface EventDao extends JpaRepository<Event, Integer> {
     @Modifying
     @Query("DELETE FROM Event e WHERE e.loan.equipment.id = :equipmentId")
     void deleteByEquipmentId(@Param("equipmentId") Integer equipmentId);
+
+    // Supprime tous les events liés à une liste de loans
+    // Used before cascade-deleting a user's pending (IN_PROGRESS) loans
+    @Modifying
+    @Query("DELETE FROM Event e WHERE e.loan IN :loans")
+    void deleteByLoanIn(@Param("loans") List<Loan> loans);
 }
