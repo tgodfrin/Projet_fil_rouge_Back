@@ -87,6 +87,18 @@ public class EquipmentController {
         return equipmentService.findByFamily(familyId);
     }
 
+    // Liste tous les équipements avec leur statut calculé sur une date ou une plage
+    // endDate est optionnel : si absent, startDate sert aussi de date de fin (mode date unique)
+    @IsGestionnaire
+    @GetMapping("/equipment/list/by-date")
+    @JsonView(EquipmentView.class)
+    public List<Equipment> getAllByDate(
+            @RequestParam LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+        LocalDate end = (endDate != null) ? endDate : startDate;
+        return equipmentService.findAllWithStatusForPeriod(startDate, end);
+    }
+
     // Ecriture : seuls les gestionnaires et admins gerent le parc materiel
     @IsGestionnaire
     @PostMapping("/equipment")

@@ -155,5 +155,36 @@ public class EquipmentService {
         equipment.setStatus(isOnLoan ? "EN_PRET" : "DISPONIBLE");
     }
 
+    // Retourne tous les équipements avec leur statut calculé sur la période donnée
+    // Utilisé par le gestionnaire pour visualiser la disponibilité du parc sur une date ou une plage
+    public List<Equipment> findAllWithStatusForPeriod(LocalDate startDate, LocalDate endDate) {
+        List<Equipment> equipments = equipmentDao.findAll();
+        equipments.forEach(e -> setCalculatedStatusForPeriod(e, startDate, endDate));
+        return equipments;
+    }
+
+    // Calcule le statut d'un équipement sur une période donnée (variante de setCalculatedStatus)
+    // Ordre de priorité : OUT_OF_SERVICE / UNDER_REPAIR > EN_PRET > DISPONIBLE
+    private void setCalculatedStatusForPeriod(Equipment equipment, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDt = startDate.atStartOfDay();
+        LocalDateTime endDt   = endDate.atTime(23, 59, 59);
+
+        // 1. Statut technique actif sur la période (panne ou réparation qui chevauche)
+        boolean hasTechnicalIssue = statusEquipmentDao
+                .existsByEquipmentOverlappingPeriod(equipment, startDt, endDt);
+
+        if (hasTechnicalIssue) {
+            // On récupère le type exact du statut actif pour le retourner (OUT_OF_SERVICE ou UNDER_REPAIR)
+            List<StatusEquipment> active = statusEquipmentDao.findByEquipmentAndEndStatusDateIsNull(equipment);
+            equipment.setStatus(active.isEmpty() ? "OUT_OF_SERVICE" : active.get(0).getStatusEquipmentType().name());
+            return;
+        }
+
+        // 2. Emprunt non-INVALID qui chevauche la période (bornes incluses)
+        boolean isOnLoan = loanDao.existsByEquipmentAndStatusTypeNotAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
+                equipment, StatusLoanType.INVALID, endDate, startDate);
+        equipment.setStatus(isOnLoan ? "EN_PRET" : "DISPONIBLE");
+    }
+
     public static class EquipmentNotFoundException extends Exception {}
 }
