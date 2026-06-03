@@ -1,6 +1,7 @@
 package com.locmns.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.view.AppUserView;
 import com.locmns.view.EquipmentFamilyView;
 import com.locmns.view.EquipmentView;
 import com.locmns.view.LoanView;
@@ -21,12 +22,12 @@ public class EquipmentFamily {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonView({EquipmentFamilyView.class, EquipmentView.class, LoanView.class})
+    @JsonView({EquipmentFamilyView.class, EquipmentView.class, LoanView.class, AppUserView.class})
     protected Integer id;
 
     @Column(length = 30, nullable = false, unique = true)
     @NotBlank
     @Size(min = 3, max = 30)
-    @JsonView({EquipmentFamilyView.class, EquipmentView.class})
+    @JsonView({EquipmentFamilyView.class, EquipmentView.class, AppUserView.class})
     protected String nameEquipmentFamily;
 }

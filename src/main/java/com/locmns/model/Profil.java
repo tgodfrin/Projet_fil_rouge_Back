@@ -34,5 +34,6 @@ public class Profil {
             joinColumns = @JoinColumn(name = "profil_id"),
             inverseJoinColumns = @JoinColumn(name = "equipment_family_id")
     )
+    @JsonView(AppUserView.class)
     protected List<EquipmentFamily> equipmentFamilies;
 }

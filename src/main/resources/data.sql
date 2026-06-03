@@ -115,23 +115,25 @@ INSERT INTO can_loan (profil_id, equipment_family_id)
   WHERE p.type = 'GESTIONNAIRE'
     AND NOT EXISTS (SELECT 1 FROM can_loan cl WHERE cl.profil_id = p.id AND cl.equipment_family_id = ef.id);
 
--- COLLABORATEUR : PC, Écran, Casque VR, Vidéoprojecteur, Périphérique
+-- COLLABORATEUR : toutes les familles
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'COLLABORATEUR'
-    AND ef.name_equipment_family IN ('PC', 'Écran', 'Casque VR', 'Vidéoprojecteur', 'Périphérique');
+    AND NOT EXISTS (SELECT 1 FROM can_loan cl WHERE cl.profil_id = p.id AND cl.equipment_family_id = ef.id);
 
--- INTERVENANT : PC, Périphérique, Casque VR
+-- INTERVENANT : PC, Écran, Vidéoprojecteur, Périphérique (pas Casque VR, pas Autre)
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'INTERVENANT'
-    AND ef.name_equipment_family IN ('PC', 'Périphérique', 'Casque VR');
+    AND ef.name_equipment_family IN ('PC', 'Écran', 'Vidéoprojecteur', 'Périphérique')
+    AND NOT EXISTS (SELECT 1 FROM can_loan cl WHERE cl.profil_id = p.id AND cl.equipment_family_id = ef.id);
 
--- STAGIAIRE : Périphérique, Autre
+-- STAGIAIRE : PC, Périphérique, Autre
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'STAGIAIRE'
-    AND ef.name_equipment_family IN ('Périphérique', 'Autre');
+    AND ef.name_equipment_family IN ('PC', 'Périphérique', 'Autre')
+    AND NOT EXISTS (SELECT 1 FROM can_loan cl WHERE cl.profil_id = p.id AND cl.equipment_family_id = ef.id);
 
 
 -- =============================================
