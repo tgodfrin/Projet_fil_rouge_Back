@@ -344,111 +344,151 @@ INSERT INTO status_equipment (description_status, status_equipment_type, begin_s
 
 -- =============================================
 -- 11. EMPRUNTS
+-- Toutes les dates sont relatives à CURRENT_DATE → se recalculent à chaque démarrage
 -- =============================================
 
 -- -----------------------------------------------
--- A. EMPRUNTS PASSÉS — TERMINE (pour tous les users)
+-- A. EMPRUNTS PASSÉS — TERMINE
 -- -----------------------------------------------
--- Thomas Dupont — PC-001
+-- Thomas Dupont — PC-001 (J-270 à J-263)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-09-02 08:00:00', '2025-09-09 18:00:00', '2025-09-09 17:30:00', 'TERMINE',
-   '2025-09-09 17:30:00',
+  (CURRENT_DATE - INTERVAL '270 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '263 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '263 days' + TIME '17:30:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '263 days' + TIME '17:30:00',
    (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
 
--- Marie Leroy — ECR-002
+-- Marie Leroy — ECR-002 (J-240 à J-236)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-10-06 09:00:00', '2025-10-10 18:00:00', '2025-10-09 16:00:00', 'TERMINE',
-   '2025-10-09 16:00:00',
+  (CURRENT_DATE - INTERVAL '240 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '236 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '237 days' + TIME '16:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '237 days' + TIME '16:00:00',
    (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-002'));
 
--- Lucas Bernard — PC-002 (avec incident BREAKDOWN)
+-- Lucas Bernard — PC-002 (J-226 à J-222, avec incident BREAKDOWN)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-10-20 08:30:00', '2025-10-24 18:00:00', '2025-10-24 18:00:00', 'TERMINE',
-   '2025-10-24 18:00:00',
+  (CURRENT_DATE - INTERVAL '226 days' + TIME '08:30:00',
+   CURRENT_DATE - INTERVAL '222 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '222 days' + TIME '18:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '222 days' + TIME '18:00:00',
    (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PC-002'));
 
--- Emma Petit — VR-001
+-- Emma Petit — VR-001 (J-212 à J-208)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-11-03 09:00:00', '2025-11-07 18:00:00', '2025-11-07 17:00:00', 'TERMINE',
-   '2025-11-07 17:00:00',
+  (CURRENT_DATE - INTERVAL '212 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '208 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '208 days' + TIME '17:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '208 days' + TIME '17:00:00',
    (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VR-001'));
 
--- Nathan Durand — PER-002
+-- Nathan Durand — PER-002 (J-198 à J-194)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-11-17 08:00:00', '2025-11-21 18:00:00', '2025-11-21 16:30:00', 'TERMINE',
-   '2025-11-21 16:30:00',
+  (CURRENT_DATE - INTERVAL '198 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '194 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '194 days' + TIME '16:30:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '194 days' + TIME '16:30:00',
    (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-002'));
 
--- Pierre Moreau — VP-002 (avec EARLY_RETURN)
+-- Pierre Moreau — VP-002 (J-185 à J-181, avec EARLY_RETURN)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-12-01 09:00:00', '2025-12-05 18:00:00', '2025-12-03 14:00:00', 'TERMINE',
-   '2025-12-03 14:00:00',
+  (CURRENT_DATE - INTERVAL '185 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '181 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '183 days' + TIME '14:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '183 days' + TIME '14:00:00',
    (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VP-002'));
 
--- Laura Simon — PER-001
+-- Laura Simon — PER-001 (J-177 à J-173)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2025-12-08 08:00:00', '2025-12-12 18:00:00', '2025-12-12 18:00:00', 'TERMINE',
-   '2025-12-12 18:00:00',
+  (CURRENT_DATE - INTERVAL '177 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '173 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '173 days' + TIME '18:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '173 days' + TIME '18:00:00',
    (SELECT id FROM app_user WHERE email = 'laura.simon@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
 
--- Hugo Michel — PC-001 (avec BREAKDOWN)
+-- Hugo Michel — PC-001 (J-143 à J-139, avec BREAKDOWN)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-01-12 08:00:00', '2026-01-16 18:00:00', '2026-01-16 18:00:00', 'TERMINE',
-   '2026-01-16 18:00:00',
+  (CURRENT_DATE - INTERVAL '143 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '139 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '139 days' + TIME '18:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '139 days' + TIME '18:00:00',
    (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
 
--- Camille Robert — AUT-001
+-- Camille Robert — AUT-001 (J-134 à J-130)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-01-20 09:00:00', '2026-01-24 18:00:00', '2026-01-24 17:00:00', 'TERMINE',
-   '2026-01-24 17:00:00',
+  (CURRENT_DATE - INTERVAL '134 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '130 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '130 days' + TIME '17:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '130 days' + TIME '17:00:00',
    (SELECT id FROM app_user WHERE email = 'camille.robert@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-AUT-001'));
 
--- Alexis Laurent — AUT-002
+-- Alexis Laurent — AUT-002 (J-120 à J-116)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-02-03 08:00:00', '2026-02-07 18:00:00', '2026-02-07 18:00:00', 'TERMINE',
-   '2026-02-07 18:00:00',
+  (CURRENT_DATE - INTERVAL '120 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '116 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '116 days' + TIME '18:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '116 days' + TIME '18:00:00',
    (SELECT id FROM app_user WHERE email = 'alexis.laurent@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-AUT-002'));
 
--- Thomas Dupont — 2ème emprunt, ECR-001
+-- Thomas Dupont — 2ème emprunt, ECR-001 (J-106 à J-102)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-02-16 09:00:00', '2026-02-20 18:00:00', '2026-02-20 17:30:00', 'TERMINE',
-   '2026-02-20 17:30:00',
+  (CURRENT_DATE - INTERVAL '106 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '102 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '102 days' + TIME '17:30:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '102 days' + TIME '17:30:00',
    (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
 
--- Marie Leroy — VR-001 (avec EXTENSION)
+-- Marie Leroy — VR-001 (J-93 à J-89, avec EXTENSION)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-03-02 08:00:00', '2026-03-06 18:00:00', '2026-03-07 10:00:00', 'TERMINE',
-   '2026-03-07 10:00:00',
+  (CURRENT_DATE - INTERVAL '93 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '89 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '88 days' + TIME '10:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '88 days' + TIME '10:00:00',
    (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VR-001'));
 
--- Lucas Bernard — VP-003
+-- Lucas Bernard — VP-003 (J-79 à J-75)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-03-16 09:00:00', '2026-03-20 18:00:00', '2026-03-20 18:00:00', 'TERMINE',
-   '2026-03-20 18:00:00',
+  (CURRENT_DATE - INTERVAL '79 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '75 days' + TIME '18:00:00',
+   CURRENT_DATE - INTERVAL '75 days' + TIME '18:00:00',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '75 days' + TIME '18:00:00',
    (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VP-003'));
@@ -456,45 +496,55 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
 -- -----------------------------------------------
 -- B. EMPRUNTS EN RETARD — IN_PROGRESS avec end_date dépassée
 -- -----------------------------------------------
--- Emma Petit — ECR-003 (end_date dépassée → retard)
+-- Emma Petit — ECR-003 (commencé J-10, devait finir J-3 → en retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-04-28 08:00:00', '2026-05-05 18:00:00', NULL, 'IN_PROGRESS',
-   '2026-04-25 10:00:00',
+  (CURRENT_DATE - INTERVAL '10 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '3 days' + TIME '18:00:00',
+   NULL, 'IN_PROGRESS',
+   CURRENT_DATE - INTERVAL '12 days' + TIME '10:00:00',
    (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-003'));
 
--- Hugo Michel — PER-003 (end_date dépassée → retard)
+-- Hugo Michel — PER-003 (commencé J-7, devait finir J-2 → en retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-01 09:00:00', '2026-05-08 18:00:00', NULL, 'IN_PROGRESS',
-   '2026-04-29 14:00:00',
+  (CURRENT_DATE - INTERVAL '7 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '2 days' + TIME '18:00:00',
+   NULL, 'IN_PROGRESS',
+   CURRENT_DATE - INTERVAL '9 days' + TIME '14:00:00',
    (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-003'));
 
 -- -----------------------------------------------
--- C. EMPRUNTS EN COURS — IN_PROGRESS (non en retard, end_date >= aujourd'hui)
+-- C. EMPRUNTS EN COURS — IN_PROGRESS (end_date >= aujourd'hui)
 -- -----------------------------------------------
--- Thomas Dupont — PC-002
+-- Thomas Dupont — PC-002 (commencé J-2, finit J+10)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-12 08:00:00', '2026-05-23 18:00:00', NULL, 'IN_PROGRESS',
-   '2026-05-11 15:00:00',
+  (CURRENT_DATE - INTERVAL '2 days' + TIME '08:00:00',
+   CURRENT_DATE + INTERVAL '10 days' + TIME '18:00:00',
+   NULL, 'IN_PROGRESS',
+   CURRENT_DATE - INTERVAL '3 days' + TIME '15:00:00',
    (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PC-002'));
 
--- Nathan Durand — VR-003
+-- Nathan Durand — VR-003 (commencé J-1, finit J+14)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-13 09:00:00', '2026-05-27 18:00:00', NULL, 'IN_PROGRESS',
-   '2026-05-12 10:30:00',
+  (CURRENT_DATE - INTERVAL '1 day' + TIME '09:00:00',
+   CURRENT_DATE + INTERVAL '14 days' + TIME '18:00:00',
+   NULL, 'IN_PROGRESS',
+   CURRENT_DATE - INTERVAL '2 days' + TIME '10:30:00',
    (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VR-003'));
 
--- Pierre Moreau — PER-002
+-- Pierre Moreau — PER-002 (commencé J-1, finit J+8)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-14 08:00:00', '2026-05-21 18:00:00', NULL, 'IN_PROGRESS',
-   '2026-05-13 09:00:00',
+  (CURRENT_DATE - INTERVAL '1 day' + TIME '08:00:00',
+   CURRENT_DATE + INTERVAL '8 days' + TIME '18:00:00',
+   NULL, 'IN_PROGRESS',
+   CURRENT_DATE - INTERVAL '2 days' + TIME '09:00:00',
    (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-002'));
@@ -502,56 +552,68 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
 -- -----------------------------------------------
 -- C bis. EMPRUNTS EN RETARD — VALID dont endDate est dépassée (pour les alertes retards)
 -- -----------------------------------------------
--- Nathan Durand — PERI-001 (retard de 7 jours)
+-- Nathan Durand — PER-001 (devait finir J-5 → retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-06 08:00:00', '2026-05-13 18:00:00', NULL, 'VALID',
-   '2026-05-05 10:00:00',
+  (CURRENT_DATE - INTERVAL '12 days' + TIME '08:00:00',
+   CURRENT_DATE - INTERVAL '5 days' + TIME '18:00:00',
+   NULL, 'VALID',
+   CURRENT_DATE - INTERVAL '14 days' + TIME '10:00:00',
    (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
 
--- Emma Petit — ECR-003 (retard de 4 jours)
+-- Emma Petit — ECR-001 (devait finir J-3 → retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-10 09:00:00', '2026-05-16 18:00:00', NULL, 'VALID',
-   '2026-05-09 11:00:00',
+  (CURRENT_DATE - INTERVAL '10 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '3 days' + TIME '18:00:00',
+   NULL, 'VALID',
+   CURRENT_DATE - INTERVAL '12 days' + TIME '11:00:00',
    (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
-   (SELECT id FROM equipment WHERE reference = 'REF-ECR-003'));
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
 
 -- -----------------------------------------------
 -- D. EMPRUNTS FUTURS — VALID (begin_date dans le futur, approuvés)
 -- -----------------------------------------------
--- Camille Robert — AUT-003
+-- Camille Robert — AUT-003 (J+4 à J+6)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-20 08:00:00', '2026-05-22 18:00:00', NULL, 'VALID',
-   '2026-05-14 08:00:00',
+  (CURRENT_DATE + INTERVAL '4 days' + TIME '08:00:00',
+   CURRENT_DATE + INTERVAL '6 days' + TIME '18:00:00',
+   NULL, 'VALID',
+   CURRENT_DATE - INTERVAL '1 day' + TIME '08:00:00',
    (SELECT id FROM app_user WHERE email = 'camille.robert@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-AUT-003'));
 
--- Laura Simon — PC-001
+-- Laura Simon — PC-001 (J+7 à J+11)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-26 09:00:00', '2026-05-30 18:00:00', NULL, 'VALID',
-   '2026-05-14 09:30:00',
+  (CURRENT_DATE + INTERVAL '7 days' + TIME '09:00:00',
+   CURRENT_DATE + INTERVAL '11 days' + TIME '18:00:00',
+   NULL, 'VALID',
+   CURRENT_DATE - INTERVAL '1 day' + TIME '09:30:00',
    (SELECT id FROM app_user WHERE email = 'laura.simon@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PC-001'));
 
--- Alexis Laurent — VP-002
+-- Alexis Laurent — VP-002 (J+14 à J+18)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-06-02 08:00:00', '2026-06-06 18:00:00', NULL, 'VALID',
-   '2026-05-15 10:00:00',
+  (CURRENT_DATE + INTERVAL '14 days' + TIME '08:00:00',
+   CURRENT_DATE + INTERVAL '18 days' + TIME '18:00:00',
+   NULL, 'VALID',
+   CURRENT_DATE - INTERVAL '1 day' + TIME '10:00:00',
    (SELECT id FROM app_user WHERE email = 'alexis.laurent@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VP-002'));
 
 -- -----------------------------------------------
--- E. DEMANDES EN ATTENTE — VALID sans validator
+-- E. DEMANDES EN ATTENTE — IN_PROGRESS sans validator (en attente de validation)
 -- -----------------------------------------------
--- Marie Leroy — ECR-002
+-- Marie Leroy — ECR-002 (J+2 à J+6)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-19 08:00:00', '2026-05-23 18:00:00', NULL, 'VALID',
-   '2026-05-15 08:00:00',
+  (CURRENT_DATE + INTERVAL '2 days' + TIME '08:00:00',
+   CURRENT_DATE + INTERVAL '6 days' + TIME '18:00:00',
+   NULL, 'IN_PROGRESS',
+   CURRENT_DATE + TIME '08:00:00',
    (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
    NULL,
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-002'));
@@ -561,8 +623,10 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
 -- -----------------------------------------------
 -- Thomas Dupont — VP-001 (refusé, équipement en réparation)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
-  ('2026-05-20 08:00:00', '2026-05-24 18:00:00', NULL, 'INVALID',
-   '2026-05-14 11:00:00',
+  (CURRENT_DATE + INTERVAL '3 days' + TIME '08:00:00',
+   CURRENT_DATE + INTERVAL '7 days' + TIME '18:00:00',
+   NULL, 'INVALID',
+   CURRENT_DATE - INTERVAL '1 day' + TIME '11:00:00',
    (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VP-001'));
@@ -571,68 +635,74 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
 -- =============================================
 -- 12. ÉVÉNEMENTS (liés aux emprunts)
 -- =============================================
--- BREAKDOWN — Lucas Bernard sur PC-002
+-- BREAKDOWN — Lucas Bernard sur PC-002 (emprunt passé J-226)
 INSERT INTO event (description, created_at, type, loan_id) VALUES
   ('Panne signalée : le laptop ne s''allume plus après une mise à jour forcée.',
-   '2025-10-22 10:00:00', 'BREAKDOWN',
+   CURRENT_DATE - INTERVAL '224 days' + TIME '10:00:00', 'BREAKDOWN',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr')
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-PC-002')
-    LIMIT 1));
+    ORDER BY begin_date ASC LIMIT 1));
 
--- BREAKDOWN — Hugo Michel sur PC-001
+-- BREAKDOWN — Hugo Michel sur PC-001 (emprunt passé J-143)
 INSERT INTO event (description, created_at, type, loan_id) VALUES
   ('Panne signalée : tablette ne répond plus après mise en veille prolongée.',
-   '2026-01-14 11:00:00', 'BREAKDOWN',
+   CURRENT_DATE - INTERVAL '141 days' + TIME '11:00:00', 'BREAKDOWN',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr')
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-PC-001')
-    LIMIT 1));
+    ORDER BY begin_date ASC LIMIT 1));
 
--- EARLY_RETURN — Pierre Moreau sur VP-002
+-- EARLY_RETURN — Pierre Moreau sur VP-002 (emprunt passé J-185)
 INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
   ('Retour anticipé — conférence annulée.',
-   '2025-12-03 14:00:00', '2025-12-03 14:00:00', 'EARLY_RETURN',
+   CURRENT_DATE - INTERVAL '183 days' + TIME '14:00:00',
+   CURRENT_DATE - INTERVAL '183 days' + TIME '14:00:00',
+   'EARLY_RETURN',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr')
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-VP-002')
-    LIMIT 1));
+    ORDER BY begin_date ASC LIMIT 1));
 
--- EARLY_RETURN — Marie Leroy sur ECR-002
+-- EARLY_RETURN — Marie Leroy sur ECR-002 (emprunt passé J-240)
 INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
   ('Retour anticipé — mission terminée plus tôt que prévu.',
-   '2025-10-09 10:00:00', '2025-10-09 10:00:00', 'EARLY_RETURN',
+   CURRENT_DATE - INTERVAL '237 days' + TIME '10:00:00',
+   CURRENT_DATE - INTERVAL '237 days' + TIME '10:00:00',
+   'EARLY_RETURN',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr')
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-ECR-002')
-    LIMIT 1));
+    ORDER BY begin_date ASC LIMIT 1));
 
--- EXTENSION — Marie Leroy sur VR-001
+-- EXTENSION — Marie Leroy sur VR-001 (emprunt passé J-93)
 INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
   ('Demande de prolongation d''un jour — présentation client reportée.',
-   '2026-03-06 09:00:00', '2026-03-06 09:00:00', 'EXTENSION',
+   CURRENT_DATE - INTERVAL '89 days' + TIME '09:00:00',
+   CURRENT_DATE - INTERVAL '89 days' + TIME '09:00:00',
+   'EXTENSION',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr')
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-VR-001')
-    LIMIT 1));
+    ORDER BY begin_date ASC LIMIT 1));
 
--- EXTENSION — Thomas Dupont sur PC-002 (en cours)
+-- EXTENSION — Thomas Dupont sur PC-002 (emprunt en cours J-2)
 INSERT INTO event (description, created_at, type, loan_id) VALUES
   ('Demande de prolongation de 3 jours — projet en cours non terminé.',
-   '2026-05-14 09:00:00', 'EXTENSION',
+   CURRENT_DATE - INTERVAL '1 day' + TIME '09:00:00', 'EXTENSION',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr')
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-PC-002')
-    LIMIT 1));
+    ORDER BY begin_date DESC LIMIT 1));
 
--- BREAKDOWN — Emma Petit sur ECR-003 (en retard)
+-- BREAKDOWN — Emma Petit sur ECR-003 (emprunt en retard J-10)
 INSERT INTO event (description, created_at, type, loan_id) VALUES
   ('Incident signalé : pixel mort détecté sur l''angle inférieur droit.',
-   '2026-05-02 11:00:00', 'BREAKDOWN',
+   CURRENT_DATE - INTERVAL '8 days' + TIME '11:00:00', 'BREAKDOWN',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr')
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-ECR-003')
-    LIMIT 1));
+    ORDER BY begin_date DESC LIMIT 1));
 
 
 -- =============================================
