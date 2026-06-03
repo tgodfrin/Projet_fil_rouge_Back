@@ -148,9 +148,10 @@ public class EquipmentService {
             return; // On s'arrête ici — statut technique prioritaire sur tout
         }
 
-        // 2. Vérifie s'il existe un emprunt VALID sur cet équipement
-        // VALID = gestionnaire a approuvé, équipement physiquement sorti — donc EN_PRET
-        boolean isOnLoan = loanDao.existsByEquipmentAndStatusType(equipment, StatusLoanType.VALID);
+        // 2. Vérifie s'il existe un emprunt VALID dont beginDate <= aujourd'hui
+        // Un emprunt validé mais pas encore démarré ne doit pas bloquer l'affichage DISPONIBLE
+        boolean isOnLoan = loanDao.existsByEquipmentAndStatusTypeAndBeginDateLessThanEqual(
+                equipment, StatusLoanType.VALID, LocalDate.now());
         equipment.setStatus(isOnLoan ? "EN_PRET" : "DISPONIBLE");
     }
 

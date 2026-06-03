@@ -49,6 +49,11 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
     // exists... est plus léger que find... car renvoie un boolean sans charger l'objet entier
     boolean existsByEquipmentAndStatusType(Equipment equipment, StatusLoanType statusType);
 
+    // Vérifie si un emprunt VALID a déjà commencé (beginDate <= date) pour un équipement
+    // Utilisé pour n'afficher EN_PRET que si l'emprunt a effectivement démarré
+    boolean existsByEquipmentAndStatusTypeAndBeginDateLessThanEqual(
+            Equipment equipment, StatusLoanType statusType, LocalDate date);
+
     // Supprime tous les emprunts liés à un équipement (utilisé avant suppression de l'équipement)
     void deleteByEquipment(Equipment equipment);
 
