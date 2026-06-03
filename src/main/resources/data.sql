@@ -755,3 +755,125 @@ INSERT INTO fait_reference (doc_id, equipment_id)
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
   WHERE d.title = 'Procédure de signalement d''incident';
+
+
+-- =============================================
+-- 15. ÉQUIPEMENTS SUPPLÉMENTAIRES (1 par catégorie = 6 de plus)
+-- =============================================
+INSERT INTO equipment (reference, equipment_name, location, acquisition_date, equipment_family_id) VALUES
+  ('REF-PC-004',  'HP EliteBook 840',         'Salle A101',       '2024-02-10',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'PC')),
+  ('REF-ECR-004', 'AOC 27" QHD',              'Salle B204',       '2024-01-20',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Écran')),
+  ('REF-VR-004',  'Meta Quest Pro',            'Salle VR',         '2024-06-01',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Casque VR')),
+  ('REF-VP-004',  'Acer X1526HK',             'Salle de réunion', '2024-03-15',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Vidéoprojecteur')),
+  ('REF-PER-004', 'Hub USB-C 7 ports',        'Stock',            '2024-04-05',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Périphérique')),
+  ('REF-AUT-004', 'Micro-cravate Rode',       'Stock',            '2024-05-12',
+   (SELECT id FROM equipment_family WHERE name_equipment_family = 'Autre'));
+
+
+-- =============================================
+-- 16. EMPRUNTS SUPPLÉMENTAIRES (passé / présent / futur)
+-- =============================================
+
+-- Thomas Dupont — PC-004 (J-60 à J-55, terminé)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE - INTERVAL '60 days',
+   CURRENT_DATE - INTERVAL '55 days',
+   CURRENT_DATE - INTERVAL '55 days',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '55 days',
+   (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PC-004'));
+
+-- Marie Leroy — VR-004 (J-45 à J-40, terminé)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE - INTERVAL '45 days',
+   CURRENT_DATE - INTERVAL '40 days',
+   CURRENT_DATE - INTERVAL '40 days',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '40 days',
+   (SELECT id FROM app_user WHERE email = 'marie.leroy@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-VR-004'));
+
+-- Lucas Bernard — ECR-004 (J-30 à J-25, terminé)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE - INTERVAL '30 days',
+   CURRENT_DATE - INTERVAL '25 days',
+   CURRENT_DATE - INTERVAL '25 days',
+   'TERMINE',
+   CURRENT_DATE - INTERVAL '25 days',
+   (SELECT id FROM app_user WHERE email = 'lucas.bernard@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-004'));
+
+-- Emma Petit — PER-004 (en cours, J-3 à J+5)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE - INTERVAL '3 days',
+   CURRENT_DATE + INTERVAL '5 days',
+   NULL,
+   'IN_PROGRESS',
+   CURRENT_DATE - INTERVAL '4 days',
+   (SELECT id FROM app_user WHERE email = 'emma.petit@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PER-004'));
+
+-- Nathan Durand — AUT-004 (en cours, J-1 à J+3)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE - INTERVAL '1 day',
+   CURRENT_DATE + INTERVAL '3 days',
+   NULL,
+   'IN_PROGRESS',
+   CURRENT_DATE - INTERVAL '2 days',
+   (SELECT id FROM app_user WHERE email = 'nathan.durand@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-AUT-004'));
+
+-- Pierre Moreau — VP-004 (futur, J+5 à J+9, validé)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE + INTERVAL '5 days',
+   CURRENT_DATE + INTERVAL '9 days',
+   NULL,
+   'VALID',
+   CURRENT_DATE - INTERVAL '1 day',
+   (SELECT id FROM app_user WHERE email = 'pierre.moreau@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-VP-004'));
+
+-- Laura Simon — PC-004 (futur, J+10 à J+15, validé)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE + INTERVAL '10 days',
+   CURRENT_DATE + INTERVAL '15 days',
+   NULL,
+   'VALID',
+   CURRENT_DATE,
+   (SELECT id FROM app_user WHERE email = 'laura.simon@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-PC-004'));
+
+-- Camille Robert — ECR-004 (futur, J+20 à J+24, validé)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE + INTERVAL '20 days',
+   CURRENT_DATE + INTERVAL '24 days',
+   NULL,
+   'VALID',
+   CURRENT_DATE,
+   (SELECT id FROM app_user WHERE email = 'camille.robert@mns.fr'),
+   (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
+   (SELECT id FROM equipment WHERE reference = 'REF-ECR-004'));
+
+-- Hugo Michel — VR-004 (en attente de validation, J+3 à J+7)
+INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
+  (CURRENT_DATE + INTERVAL '3 days',
+   CURRENT_DATE + INTERVAL '7 days',
+   NULL,
+   'IN_PROGRESS',
+   CURRENT_DATE,
+   (SELECT id FROM app_user WHERE email = 'hugo.michel@mns.fr'),
+   NULL,
+   (SELECT id FROM equipment WHERE reference = 'REF-VR-004'));
