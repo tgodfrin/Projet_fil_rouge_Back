@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.view.AppUserView;
 import com.locmns.view.LoanView;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,32 +19,24 @@ import java.time.LocalDateTime;
 @Entity
 public class AppUser {
 
-    public interface OnUpdate {}
-    public interface OnCreate {}
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonView({AppUserView.class, LoanView.class})
     protected Integer id;
 
     @Column(nullable = false, unique = true)
-    @NotBlank(groups = OnCreate.class, message = "L'email ne peut pas etre vide")
-    @Email(groups = OnCreate.class, message = "L'email est mal forme")
     @JsonView(AppUserView.class)
     protected String email;
 
     @Column(nullable = false)
-    @NotBlank(groups = OnCreate.class, message = "Le nom ne peut pas etre vide")
     @JsonView({AppUserView.class, LoanView.class})
     protected String name;
 
     @Column(nullable = false)
-    @NotBlank(groups = OnCreate.class, message = "Le prenom ne peut pas etre vide")
     @JsonView({AppUserView.class, LoanView.class})
     protected String lastname;
 
     @Column(nullable = false)
-    @NotBlank(groups = OnCreate.class, message = "Le mot de passe ne peut pas etre vide")
     // pas de @JsonView : le password n'est jamais serialise
     protected String password;
 

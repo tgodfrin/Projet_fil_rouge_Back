@@ -2,13 +2,10 @@ package com.locmns.service;
 
 import com.locmns.dao.AppUserDao;
 import com.locmns.dao.EquipmentDao;
-import com.locmns.dao.EventDao;
 import com.locmns.dao.LoanDao;
-import com.locmns.enums.EventType;
 import com.locmns.enums.StatusLoanType;
 import com.locmns.model.AppUser;
 import com.locmns.model.Equipment;
-import com.locmns.model.Event;
 import com.locmns.model.Loan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +23,6 @@ public class LoanService {
     private final LoanDao      loanDao;
     private final AppUserDao   appUserDao;
     private final EquipmentDao equipmentDao;
-    private final EventDao     eventDao;
 
     public List<Loan> findAll() {
         return loanDao.findAll();
@@ -172,44 +168,6 @@ public class LoanService {
     }
 
     /**
-     * Extends a loan's end date.
-     * Checks: requester ownership, valid status (VALID or IN_PROGRESS), new date must be after current end date.
-     * Creates an EXTENSION event on success.
-     */
-    public Loan extend(Integer loanId, Integer requesterId, LocalDate newEndDate)
-            throws LoanNotFoundException, ForbiddenException, InvalidExtensionException {
-        Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
-
-        // Only the requester can extend their own loan
-        if (!loan.getRequester().getId().equals(requesterId)) {
-            throw new ForbiddenException();
-        }
-
-        // Only active loans can be extended
-        if (loan.getStatusType() != StatusLoanType.VALID
-                && loan.getStatusType() != StatusLoanType.IN_PROGRESS) {
-            throw new InvalidExtensionException("Seuls les emprunts en cours ou en attente peuvent être prolongés");
-        }
-
-        // New date must be strictly after current end date
-        if (!newEndDate.isAfter(loan.getEndDate())) {
-            throw new InvalidExtensionException("La nouvelle date doit être après la date de fin actuelle");
-        }
-
-        loan.setEndDate(newEndDate);
-        loanDao.save(loan);
-
-        // Record the extension as an event
-        Event event = new Event();
-        event.setType(EventType.EXTENSION);
-        event.setDescription("Extension jusqu'au " + newEndDate);
-        event.setLoan(loan);
-        eventDao.save(event);
-
-        return loan;
-    }
-
-    /**
      * Gestionnaire validates an early return request where the return date is in the future.
      * Updates the loan's endDate to the requested early return date — the loan stays VALID.
      * The actual TERMINE transition happens separately when the equipment is physically received.
@@ -254,9 +212,6 @@ public class LoanService {
     // Levée quand un emprunt actif chevauche déjà la période demandée pour cet équipement
     // Permet de bloquer la race condition côté back, indépendamment du check côté front
     public static class EquipmentNotAvailableException extends Exception {}
-
-    // Levée quand l'utilisateur tente d'agir sur un emprunt qui ne lui appartient pas
-    public static class ForbiddenException extends Exception {}
 
     // Levée quand les règles métier de prolongation ne sont pas respectées
     public static class InvalidExtensionException extends Exception {

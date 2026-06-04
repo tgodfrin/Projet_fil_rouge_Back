@@ -63,30 +63,6 @@ public class EquipmentController {
         return equipmentService.findAvailableForCatalogue(userDetails.getUser().getId(), begin, end);
     }
 
-    // Accepte des dates ISO YYYY-MM-DD (sans heure) — cohérent avec LocalDate côté Loan
-    @IsUser
-    @GetMapping("/equipment/available")
-    @JsonView(EquipmentView.class)
-    public List<Equipment> getAvailable(
-            @RequestParam LocalDate begin,
-            @RequestParam LocalDate end) {
-        return equipmentService.findAvailableForPeriod(begin, end);
-    }
-
-    @IsUser
-    @GetMapping("/equipment/search")
-    @JsonView(EquipmentView.class)
-    public List<Equipment> search(@RequestParam String q) {
-        return equipmentService.searchByName(q);
-    }
-
-    @IsUser
-    @GetMapping("/equipment/family/{familyId}")
-    @JsonView(EquipmentView.class)
-    public List<Equipment> getByFamily(@PathVariable Integer familyId) {
-        return equipmentService.findByFamily(familyId);
-    }
-
     // Liste tous les équipements avec leur statut calculé sur une date ou une plage
     // endDate est optionnel : si absent, startDate sert aussi de date de fin (mode date unique)
     @IsGestionnaire

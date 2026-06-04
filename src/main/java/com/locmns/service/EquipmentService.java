@@ -47,23 +47,6 @@ public class EquipmentService {
         return opt;
     }
 
-    // Retourne les équipements disponibles sur une période donnée
-    // Convertit LocalDate → LocalDateTime pour la query JPQL (qui compare aussi StatusEquipment)
-    public List<Equipment> findAvailableForPeriod(LocalDate begin, LocalDate end) {
-        LocalDateTime beginDt = begin.atStartOfDay();
-        LocalDateTime endDt   = end.atTime(23, 59, 59);
-        List<Equipment> available = equipmentDao.findAvailableEquipments(beginDt, endDt);
-        available.forEach(e -> e.setStatus("DISPONIBLE"));
-        return available;
-    }
-
-    // Recherche par nom (insensible à la casse, partiel) + calcul statut
-    public List<Equipment> searchByName(String q) {
-        List<Equipment> results = equipmentDao.findByEquipmentNameContainingIgnoreCase(q);
-        results.forEach(this::setCalculatedStatus);
-        return results;
-    }
-
     /**
      * Retourne uniquement les équipements dont la famille est autorisée par le profil de l'utilisateur.
      * Utilisé pour le catalogue côté utilisateur — masque les familles hors périmètre.
@@ -90,15 +73,6 @@ public class EquipmentService {
         List<Equipment> available = equipmentDao.findAvailableEquipmentsInFamilies(beginDt, endDt, allowedFamilies);
         available.forEach(e -> e.setStatus("DISPONIBLE"));
         return available;
-    }
-
-    // Filtre par famille + calcul statut
-    public List<Equipment> findByFamily(Integer familyId) {
-        EquipmentFamily family = new EquipmentFamily();
-        family.setId(familyId);
-        List<Equipment> results = equipmentDao.findByEquipmentFamily(family);
-        results.forEach(this::setCalculatedStatus);
-        return results;
     }
 
     public void create(Equipment equipment) {

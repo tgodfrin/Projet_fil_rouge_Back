@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin
 @RequiredArgsConstructor
 public class AuthController {
 
