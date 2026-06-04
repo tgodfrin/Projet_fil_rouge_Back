@@ -1,6 +1,7 @@
 package com.locmns.security;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +19,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +33,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Value("${jwt.secret}")
     private String secretKey;
+
+    // Builds the HMAC-SHA verification key from the configured secret (jjwt 0.12 API)
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    }
 
     @Override
     protected void doFilterInternal(
@@ -43,11 +51,12 @@ public class JwtFilter extends OncePerRequestFilter {
             String jwt = token.substring(7);
 
             try {
-                // Extraction de l'email (subject) depuis le token - API jjwt 0.9.1
+                // Extraction de l'email (subject) depuis le token - API jjwt 0.12
                 String email = Jwts.parser()
-                        .setSigningKey(secretKey)
-                        .parseClaimsJws(jwt)
-                        .getBody()
+                        .verifyWith(getSigningKey())
+                        .build()
+                        .parseSignedClaims(jwt)
+                        .getPayload()
                         .getSubject();
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
