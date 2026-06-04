@@ -1,5 +1,6 @@
 package com.locmns.service;
 
+import com.locmns.dao.EquipmentDao;
 import com.locmns.dao.EquipmentFamilyDao;
 import com.locmns.dao.ProfilDao;
 import com.locmns.model.EquipmentFamily;
@@ -16,6 +17,7 @@ public class EquipmentFamilyService {
 
     private final EquipmentFamilyDao equipmentFamilyDao;
     private final ProfilDao          profilDao;
+    private final EquipmentDao       equipmentDao;
 
     /**
      * Sets which profils are allowed to borrow the given family (can_loan join table).
@@ -44,5 +46,37 @@ public class EquipmentFamilyService {
         profilDao.saveAll(profils);
     }
 
+    /**
+     * Deletes a family. Refused (409 via controller) if it still holds equipment.
+     * Otherwise its can_loan associations (owned by Profil) are cleared first to avoid
+     * a foreign-key violation, then the family is removed.
+     */
+    @Transactional
+    public void deleteFamily(Integer familyId) throws FamilyNotFoundException, FamilyHasEquipmentException {
+        EquipmentFamily family = equipmentFamilyDao.findById(familyId)
+                .orElseThrow(FamilyNotFoundException::new);
+
+        if (equipmentDao.existsByEquipmentFamily(family)) {
+            throw new FamilyHasEquipmentException();
+        }
+
+        // Detach the family from every profil's can_loan list before deleting
+        List<Profil> profils = profilDao.findAll();
+        boolean changed = false;
+        for (Profil profil : profils) {
+            if (profil.getEquipmentFamilies().removeIf(f -> f.getId().equals(familyId))) {
+                changed = true;
+            }
+        }
+        if (changed) {
+            profilDao.saveAll(profils);
+        }
+
+        equipmentFamilyDao.deleteById(familyId);
+    }
+
     public static class FamilyNotFoundException extends Exception {}
+
+    // Raised when trying to delete a family that still contains equipment
+    public static class FamilyHasEquipmentException extends Exception {}
 }

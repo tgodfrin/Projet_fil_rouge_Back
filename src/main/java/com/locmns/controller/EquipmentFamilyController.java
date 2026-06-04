@@ -1,7 +1,6 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.locmns.dao.EquipmentDao;
 import com.locmns.dao.EquipmentFamilyDao;
 import com.locmns.dto.EquipmentFamilyRequest;
 import com.locmns.dto.ProfilIdsRequest;
@@ -24,7 +23,6 @@ import java.util.Optional;
 public class EquipmentFamilyController {
 
     private final EquipmentFamilyDao equipmentFamilyDao;
-    private final EquipmentDao equipmentDao;
     private final EquipmentFamilyService equipmentFamilyService;
 
     // Les catégories sont lisibles par tous les utilisateurs connectés
@@ -66,14 +64,15 @@ public class EquipmentFamilyController {
     @IsGestionnaire
     @DeleteMapping("/equipment-family/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        Optional<EquipmentFamily> opt = equipmentFamilyDao.findById(id);
-        if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        // Refuse deletion when the family still holds equipment (no orphaned equipment allowed)
-        if (equipmentDao.existsByEquipmentFamily(opt.get())) {
+        try {
+            equipmentFamilyService.deleteFamily(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (EquipmentFamilyService.FamilyNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (EquipmentFamilyService.FamilyHasEquipmentException e) {
+            // The family still holds equipment — refuse deletion
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
-        equipmentFamilyDao.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     // Sets which profils (roles) are allowed to borrow this family — updates the can_loan table
