@@ -1,0 +1,44 @@
+# Isolated test stack for the feature/audit-corrections branch.
+# Separate project name, ports, volume and container names — does not touch the default stack.
+# Run:  docker compose -f docker-compose.audit.yml up --build
+# Stop: docker compose -f docker-compose.audit.yml down        (keeps the volume)
+# Wipe: docker compose -f docker-compose.audit.yml down -v     (removes the audit volume only)
+
+name: locmns-audit
+
+services:
+
+  # ── PostgreSQL (isolated) ─────────────────────────────────
+  postgres-audit:
+    image: postgres:16
+    container_name: locmns-audit-db
+    environment:
+      POSTGRES_DB:       locmns
+      POSTGRES_USER:     locmns_user
+      POSTGRES_PASSWORD: locmns_pass
+    ports:
+      - "5434:5432"   # host 5434 → container 5432 (5433 is used by the default stack)
+    volumes:
+      - pgdata-audit:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U locmns_user -d locmns"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Spring Boot back-end (isolated) ───────────────────────
+  back-audit:
+    build: .
+    container_name: locmns-audit-back
+    ports:
+      - "8081:8080"   # host 8081 → container 8080 (8080 is used by the default stack)
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres-audit:5432/locmns
+      SPRING_DATASOURCE_USERNAME: locmns_user
+      SPRING_DATASOURCE_PASSWORD: locmns_pass
+    depends_on:
+      postgres-audit:
+        condition: service_healthy
+
+volumes:
+  pgdata-audit:
