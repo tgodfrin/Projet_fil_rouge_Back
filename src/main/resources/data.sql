@@ -657,7 +657,7 @@ INSERT INTO event (description, created_at, type, loan_id) VALUES
 
 -- EARLY_RETURN — Pierre Moreau sur VP-002 (emprunt passé J-185)
 INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
-  ('Retour anticipé — conférence annulée.',
+  ((CURRENT_DATE - 183)::text || '|Conférence annulée.',
    CURRENT_DATE - INTERVAL '183 days' + TIME '14:00:00',
    CURRENT_DATE - INTERVAL '183 days' + TIME '14:00:00',
    'EARLY_RETURN',
@@ -668,7 +668,7 @@ INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
 
 -- EARLY_RETURN — Marie Leroy sur ECR-002 (emprunt passé J-240)
 INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
-  ('Retour anticipé — mission terminée plus tôt que prévu.',
+  ((CURRENT_DATE - 237)::text || '|Mission terminée plus tôt que prévu.',
    CURRENT_DATE - INTERVAL '237 days' + TIME '10:00:00',
    CURRENT_DATE - INTERVAL '237 days' + TIME '10:00:00',
    'EARLY_RETURN',
@@ -679,7 +679,7 @@ INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
 
 -- EXTENSION — Marie Leroy sur VR-001 (emprunt passé J-93)
 INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
-  ('Demande de prolongation d''un jour — présentation client reportée.',
+  ((CURRENT_DATE - 88)::text || '|Présentation client reportée (prolongation 1 jour).',
    CURRENT_DATE - INTERVAL '89 days' + TIME '09:00:00',
    CURRENT_DATE - INTERVAL '89 days' + TIME '09:00:00',
    'EXTENSION',
@@ -690,7 +690,7 @@ INSERT INTO event (description, created_at, reading_date, type, loan_id) VALUES
 
 -- EXTENSION — Thomas Dupont sur PC-002 (emprunt en cours J-2)
 INSERT INTO event (description, created_at, type, loan_id) VALUES
-  ('Demande de prolongation de 3 jours — projet en cours non terminé.',
+  ((CURRENT_DATE + 13)::text || '|Projet en cours non terminé (prolongation 3 jours).',
    CURRENT_DATE - INTERVAL '1 day' + TIME '09:00:00', 'EXTENSION',
    (SELECT id FROM loan
     WHERE requester_id = (SELECT id FROM app_user WHERE email = 'thomas.dupont@mns.fr')
