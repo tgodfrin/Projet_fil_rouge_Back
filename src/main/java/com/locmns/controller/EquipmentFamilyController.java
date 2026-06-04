@@ -1,6 +1,7 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.locmns.dao.EquipmentDao;
 import com.locmns.dao.EquipmentFamilyDao;
 import com.locmns.dto.EquipmentFamilyRequest;
 import com.locmns.model.EquipmentFamily;
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class EquipmentFamilyController {
 
     private final EquipmentFamilyDao equipmentFamilyDao;
+    private final EquipmentDao equipmentDao;
 
     // Les catégories sont lisibles par tous les utilisateurs connectés
     @IsUser
@@ -61,7 +63,12 @@ public class EquipmentFamilyController {
     @IsGestionnaire
     @DeleteMapping("/equipment-family/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        if (equipmentFamilyDao.findById(id).isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        Optional<EquipmentFamily> opt = equipmentFamilyDao.findById(id);
+        if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        // Refuse deletion when the family still holds equipment (no orphaned equipment allowed)
+        if (equipmentDao.existsByEquipmentFamily(opt.get())) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
         equipmentFamilyDao.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
