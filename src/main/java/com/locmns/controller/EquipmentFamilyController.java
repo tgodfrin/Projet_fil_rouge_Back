@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.dao.EquipmentDao;
 import com.locmns.dao.EquipmentFamilyDao;
 import com.locmns.dto.EquipmentFamilyRequest;
+import com.locmns.dto.ProfilIdsRequest;
 import com.locmns.model.EquipmentFamily;
+import com.locmns.service.EquipmentFamilyService;
 import com.locmns.view.EquipmentFamilyView;
 import jakarta.validation.Valid;
 import com.locmns.security.IsGestionnaire;
@@ -23,6 +25,7 @@ public class EquipmentFamilyController {
 
     private final EquipmentFamilyDao equipmentFamilyDao;
     private final EquipmentDao equipmentDao;
+    private final EquipmentFamilyService equipmentFamilyService;
 
     // Les catégories sont lisibles par tous les utilisateurs connectés
     @IsUser
@@ -71,6 +74,18 @@ public class EquipmentFamilyController {
         }
         equipmentFamilyDao.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Sets which profils (roles) are allowed to borrow this family — updates the can_loan table
+    @IsGestionnaire
+    @PutMapping("/equipment-family/{id}/profils")
+    public ResponseEntity<Void> setProfils(@PathVariable Integer id, @RequestBody ProfilIdsRequest dto) {
+        try {
+            equipmentFamilyService.setAllowedProfils(id, dto.getProfilIds());
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (EquipmentFamilyService.FamilyNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     private EquipmentFamily toEntity(EquipmentFamilyRequest dto) {
