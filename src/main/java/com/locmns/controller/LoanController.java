@@ -54,12 +54,15 @@ public class LoanController {
     }
 
     // Collaborateur peut faire une demande de pret
+    // The requester is always taken from the JWT, never from the request body — guarantees traceability
     @IsUser
     @PostMapping("/loan")
     @JsonView(LoanView.class)
-    public ResponseEntity<Loan> create(@RequestBody @Valid LoanRequest dto) {
+    public ResponseEntity<Loan> create(
+            @RequestBody @Valid LoanRequest dto,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
         try {
-            Loan loan = toEntity(dto);
+            Loan loan = toEntity(dto, userDetails.getUser().getId());
             loanService.create(loan);
             return new ResponseEntity<>(loan, HttpStatus.CREATED);
         } catch (LoanService.UnauthorizedEquipmentFamilyException e) {
@@ -141,26 +144,6 @@ public class LoanController {
         }
     }
 
-    // Extend a loan's end date — authenticated user must be the requester
-    @IsUser
-    @PutMapping("/loan/{id}/extend")
-    @JsonView(LoanView.class)
-    public ResponseEntity<Loan> extendLoan(
-            @PathVariable Integer id,
-            @RequestBody @Valid ExtendLoanRequest dto,
-            @AuthenticationPrincipal AppUserDetails userDetails) {
-        try {
-            Loan updated = loanService.extend(id, userDetails.getUser().getId(), dto.getNewEndDate());
-            return new ResponseEntity<>(updated, HttpStatus.OK);
-        } catch (LoanService.LoanNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (LoanService.ForbiddenException e) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        } catch (LoanService.InvalidExtensionException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
     // Gestionnaire validates an early return request — updates endDate to the requested date (stays VALID)
     // The actual TERMINE is triggered separately when the equipment is physically received
     @IsGestionnaire
@@ -222,12 +205,12 @@ public class LoanController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    private Loan toEntity(LoanRequest dto) {
+    private Loan toEntity(LoanRequest dto, Integer requesterId) {
         Loan loan = new Loan();
         loan.setBeginDate(dto.getBeginDate());
         loan.setEndDate(dto.getEndDate());
         AppUser requester = new AppUser();
-        requester.setId(dto.getRequesterId());
+        requester.setId(requesterId);
         loan.setRequester(requester);
         Equipment equipment = new Equipment();
         equipment.setId(dto.getEquipmentId());

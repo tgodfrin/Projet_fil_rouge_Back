@@ -16,7 +16,8 @@ public class LoanRequest {
     @NotNull(message = "La date de fin est obligatoire")
     private LocalDate endDate;
 
-    @NotNull(message = "Le demandeur est obligatoire")
+    // Ignored by the server — the requester is resolved from the JWT (see LoanController.create).
+    // Kept optional for backward compatibility with the current front payload.
     private Integer requesterId;
 
     @NotNull(message = "L'équipement est obligatoire")
