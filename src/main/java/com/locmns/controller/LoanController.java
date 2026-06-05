@@ -1,7 +1,6 @@
 package com.locmns.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.locmns.dto.ExtendLoanRequest;
 import com.locmns.dto.LoanRequest;
 import com.locmns.model.AppUser;
 import com.locmns.model.Equipment;
@@ -36,21 +35,34 @@ public class LoanController {
         return loanService.findAll();
     }
 
+    // Détail d'un emprunt — accessible au propriétaire de l'emprunt uniquement (ou gestionnaire)
     @IsUser
     @GetMapping("/loan/{id}")
     @JsonView(LoanView.class)
-    public ResponseEntity<Loan> getById(@PathVariable Integer id) {
+    public ResponseEntity<Loan> getById(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
         Optional<Loan> opt = loanService.findById(id);
         if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        // Contrôle d'appartenance (IDOR) : seul le demandeur (ou un gestionnaire) peut voir l'emprunt
+        if (!isOwnerOrGestionnaire(userDetails, opt.get().getRequester().getId())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
-    // Tout utilisateur peut voir ses propres emprunts
+    // Emprunts d'un utilisateur — un utilisateur ne peut consulter que les siens (ou gestionnaire)
     @IsUser
     @GetMapping("/loan/user/{userId}")
     @JsonView(LoanView.class)
-    public List<Loan> getByUser(@PathVariable Integer userId) {
-        return loanService.findByRequester(userId);
+    public ResponseEntity<List<Loan>> getByUser(
+            @PathVariable Integer userId,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        // Contrôle d'appartenance (IDOR) : on ne peut lire les emprunts d'un compte que si c'est le sien
+        if (!isOwnerOrGestionnaire(userDetails, userId)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        return new ResponseEntity<>(loanService.findByRequester(userId), HttpStatus.OK);
     }
 
     // Collaborateur peut faire une demande de pret
@@ -84,7 +96,9 @@ public class LoanController {
         return loanService.findForPlanning(begin, end);
     }
 
-    @IsUser
+    // Historique d'emprunts d'un matériel (avec les noms des emprunteurs) — réservé au gestionnaire
+    // C'est une donnée de suivi du parc, pas destinée à l'emprunteur lambda
+    @IsGestionnaire
     @GetMapping("/loan/equipment/{equipmentId}")
     @JsonView(LoanView.class)
     public List<Loan> getByEquipment(@PathVariable Integer equipmentId) {
@@ -132,8 +146,9 @@ public class LoanController {
         }
     }
 
-    // Retour materiel : tout utilisateur authentifie (le collaborateur retourne son materiel)
-    @IsUser
+    // Enregistrement du retour matériel : gestionnaire uniquement
+    // L'utilisateur ne peut que DEMANDER un retour anticipé (signalement), pas enregistrer le retour
+    @IsGestionnaire
     @PutMapping("/loan/{id}/return")
     public ResponseEntity<Void> returnEquipment(@PathVariable Integer id) {
         try {
@@ -141,43 +156,14 @@ public class LoanController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (LoanService.LoanNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (LoanService.InvalidReturnException e) {
+            // Garde-fou métier : on ne peut enregistrer un retour que sur un emprunt validé/en cours
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
-    // Gestionnaire validates an early return request — updates endDate to the requested date (stays VALID)
-    // The actual TERMINE is triggered separately when the equipment is physically received
-    @IsGestionnaire
-    @PutMapping("/loan/{id}/validate-early-return")
-    @JsonView(LoanView.class)
-    public ResponseEntity<Loan> validateEarlyReturn(
-            @PathVariable Integer id,
-            @RequestBody @Valid ExtendLoanRequest dto) {
-        try {
-            Loan updated = loanService.validateEarlyReturn(id, dto.getNewEndDate());
-            return new ResponseEntity<>(updated, HttpStatus.OK);
-        } catch (LoanService.LoanNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // Gestionnaire validates an extension request from the alert list
-    // No requester ownership check — gestionnaire has authority to approve any extension
-    // Accepts overdue (VALID + past endDate) loans as well as active ones
-    @IsGestionnaire
-    @PutMapping("/loan/{id}/validate-extension")
-    @JsonView(LoanView.class)
-    public ResponseEntity<Loan> validateExtension(
-            @PathVariable Integer id,
-            @RequestBody @Valid ExtendLoanRequest dto) {
-        try {
-            Loan updated = loanService.validateExtension(id, dto.getNewEndDate());
-            return new ResponseEntity<>(updated, HttpStatus.OK);
-        } catch (LoanService.LoanNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (LoanService.InvalidExtensionException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+    // La validation/refus des demandes de retour anticipé et de prolongation passe désormais
+    // par les endpoints EventController (PUT /event/{id}/accept et /refuse), qui tracent la décision.
 
     // Get all loans sharing the same groupId — used by front to display group detail
     @IsUser
@@ -203,6 +189,14 @@ public class LoanController {
     public ResponseEntity<Void> refuseGroup(@PathVariable String groupId) {
         loanService.refuseGroup(groupId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Retourne true si l'appelant est gestionnaire ou s'il est le propriétaire (ownerId) de la ressource
+    // Centralise le contrôle d'appartenance utilisé pour empêcher les accès IDOR
+    private boolean isOwnerOrGestionnaire(AppUserDetails userDetails, Integer ownerId) {
+        boolean isGestionnaire = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE"));
+        return isGestionnaire || userDetails.getUser().getId().equals(ownerId);
     }
 
     private Loan toEntity(LoanRequest dto, Integer requesterId) {

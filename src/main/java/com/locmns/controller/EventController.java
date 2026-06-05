@@ -26,21 +26,38 @@ public class EventController {
     private final EventService eventService;
 
     // Signaler un événement (incident, retour anticipé, extension) lié à un emprunt
-    // Le front envoie : type, description, loanId
+    // Le front envoie : type, description, requestedDate, loanId
+    // Un utilisateur ne peut signaler que sur SES propres emprunts (ou gestionnaire)
     @IsUser
     @PostMapping("/event")
     @JsonView(EventView.class)
-    public ResponseEntity<Event> create(@RequestBody @Valid EventRequest dto) {
+    public ResponseEntity<Event> create(
+            @RequestBody @Valid EventRequest dto,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        Optional<Integer> ownerId = eventService.findLoanRequesterId(dto.getLoanId());
+        if (ownerId.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        // Contrôle d'appartenance (IDOR) : on ne peut créer un signalement que sur son propre emprunt
+        if (!isOwnerOrGestionnaire(userDetails, ownerId.get())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         Event saved = eventService.create(toEntity(dto));
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // Historique de tous les événements d'un emprunt précis
+    // Historique de tous les événements d'un emprunt précis — propriétaire de l'emprunt ou gestionnaire
     @IsUser
     @GetMapping("/event/loan/{loanId}")
     @JsonView(EventView.class)
-    public List<Event> getByLoan(@PathVariable Integer loanId) {
-        return eventService.findByLoan(loanId);
+    public ResponseEntity<List<Event>> getByLoan(
+            @PathVariable Integer loanId,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        Optional<Integer> ownerId = eventService.findLoanRequesterId(loanId);
+        if (ownerId.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        // Contrôle d'appartenance (IDOR) : seuls le propriétaire de l'emprunt ou un gestionnaire y accèdent
+        if (!isOwnerOrGestionnaire(userDetails, ownerId.get())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        return new ResponseEntity<>(eventService.findByLoan(loanId), HttpStatus.OK);
     }
 
     // Retourne les events EARLY_RETURN et EXTENSION du user connecté (via JWT)
@@ -78,10 +95,46 @@ public class EventController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    // Le gestionnaire accepte une demande de retour anticipé / prolongation
+    // La décision est tracée (ACCEPTED) et la date de fin de l'emprunt est mise à jour
+    @IsGestionnaire
+    @PutMapping("/event/{id}/accept")
+    @JsonView(EventView.class)
+    public ResponseEntity<Event> accept(@PathVariable Integer id) {
+        try {
+            return new ResponseEntity<>(eventService.accept(id), HttpStatus.OK);
+        } catch (EventService.EventNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (EventService.InvalidDecisionException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // Le gestionnaire refuse une demande de retour anticipé / prolongation
+    // Le refus est tracé explicitement (REFUSED) — l'emprunt reste inchangé
+    @IsGestionnaire
+    @PutMapping("/event/{id}/refuse")
+    @JsonView(EventView.class)
+    public ResponseEntity<Event> refuse(@PathVariable Integer id) {
+        try {
+            return new ResponseEntity<>(eventService.refuse(id), HttpStatus.OK);
+        } catch (EventService.EventNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Retourne true si l'appelant est gestionnaire ou s'il est le propriétaire (ownerId) de la ressource
+    private boolean isOwnerOrGestionnaire(AppUserDetails userDetails, Integer ownerId) {
+        boolean isGestionnaire = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE"));
+        return isGestionnaire || userDetails.getUser().getId().equals(ownerId);
+    }
+
     private Event toEntity(EventRequest dto) {
         Event event = new Event();
         event.setType(dto.getType());
         event.setDescription(dto.getDescription());
+        event.setRequestedDate(dto.getRequestedDate());
         Loan loan = new Loan();
         loan.setId(dto.getLoanId());
         event.setLoan(loan);

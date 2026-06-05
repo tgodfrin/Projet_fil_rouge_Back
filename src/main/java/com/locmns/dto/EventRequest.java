@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 public class EventRequest {
@@ -15,6 +17,9 @@ public class EventRequest {
 
     @NotBlank(message = "La description ne peut pas être vide")
     private String description;
+
+    // Date demandée (retour anticipé / prolongation) — null pour un incident (BREAKDOWN)
+    private LocalDate requestedDate;
 
     @NotNull(message = "L'emprunt associé est obligatoire")
     private Integer loanId;

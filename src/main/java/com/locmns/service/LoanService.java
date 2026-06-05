@@ -132,8 +132,13 @@ public class LoanService {
 
     // Retour du matériel : VALID → TERMINE
     // realEndDate = date effective du retour physique (sans heure, cohérent avec beginDate/endDate)
-    public void returnEquipment(Integer loanId) throws LoanNotFoundException {
+    // Garde-fou métier : on ne peut enregistrer un retour que sur un emprunt validé/en cours.
+    // Une demande en attente (IN_PROGRESS), un emprunt déjà rendu (TERMINE) ou refusé (INVALID) ne peuvent pas être "rendus".
+    public void returnEquipment(Integer loanId) throws LoanNotFoundException, InvalidReturnException {
         Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
+        if (loan.getStatusType() != StatusLoanType.VALID) {
+            throw new InvalidReturnException("Seul un emprunt validé / en cours peut être rendu");
+        }
         loan.setStatusType(StatusLoanType.TERMINE);
         loan.setStatusDate(LocalDateTime.now());
         loan.setRealEndDate(LocalDate.now());
@@ -167,43 +172,6 @@ public class LoanService {
         loanDao.saveAll(loans);
     }
 
-    /**
-     * Gestionnaire validates an early return request where the return date is in the future.
-     * Updates the loan's endDate to the requested early return date — the loan stays VALID.
-     * The actual TERMINE transition happens separately when the equipment is physically received.
-     */
-    public Loan validateEarlyReturn(Integer loanId, LocalDate newEndDate) throws LoanNotFoundException {
-        Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
-        loan.setEndDate(newEndDate);
-        return loanDao.save(loan);
-    }
-
-    /**
-     * Validates an extension request on behalf of a gestionnaire — no requester ownership check.
-     * Used when the gestionnaire approves an EXTENSION event from the alert list.
-     * The new end date is extracted from the event description by the front.
-     */
-    public Loan validateExtension(Integer loanId, LocalDate newEndDate)
-            throws LoanNotFoundException, InvalidExtensionException {
-        Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
-
-        // Only VALID or IN_PROGRESS loans can be extended (includes overdue VALID loans)
-        if (loan.getStatusType() != StatusLoanType.VALID
-                && loan.getStatusType() != StatusLoanType.IN_PROGRESS) {
-            throw new InvalidExtensionException("Seuls les emprunts en cours ou en attente peuvent être prolongés");
-        }
-
-        // New date must be strictly after the current end date
-        if (!newEndDate.isAfter(loan.getEndDate())) {
-            throw new InvalidExtensionException("La nouvelle date doit être après la date de fin actuelle");
-        }
-
-        loan.setEndDate(newEndDate);
-        loanDao.save(loan);
-
-        return loan;
-    }
-
     public static class LoanNotFoundException extends Exception {}
 
     // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé
@@ -213,8 +181,8 @@ public class LoanService {
     // Permet de bloquer la race condition côté back, indépendamment du check côté front
     public static class EquipmentNotAvailableException extends Exception {}
 
-    // Levée quand les règles métier de prolongation ne sont pas respectées
-    public static class InvalidExtensionException extends Exception {
-        public InvalidExtensionException(String message) { super(message); }
+    // Levée quand on tente d'enregistrer un retour sur un emprunt qui n'est pas validé/en cours
+    public static class InvalidReturnException extends Exception {
+        public InvalidReturnException(String message) { super(message); }
     }
 }

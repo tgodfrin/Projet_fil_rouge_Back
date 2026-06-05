@@ -28,6 +28,7 @@ public class EquipmentFamily {
     @Column(length = 30, nullable = false, unique = true)
     @NotBlank
     @Size(min = 3, max = 30)
-    @JsonView({EquipmentFamilyView.class, EquipmentView.class, AppUserView.class})
+    // Exposé aussi dans LoanView pour permettre l'affichage de la bonne icône de catégorie côté "Mes emprunts"
+    @JsonView({EquipmentFamilyView.class, EquipmentView.class, AppUserView.class, LoanView.class})
     protected String nameEquipmentFamily;
 }

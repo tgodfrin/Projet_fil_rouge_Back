@@ -79,4 +79,14 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
             LocalDate endDate,
             LocalDate startDate
     );
+
+    // Vérifie si un emprunt d'un statut précis chevauche une période (bornes incluses)
+    // Utilisé pour calculer EN_PRET sur une période : un matériel est "en prêt" s'il existe
+    // un emprunt VALID dont la période chevauche la fenêtre demandée (même règle que la vue date unique)
+    boolean existsByEquipmentAndStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
+            Equipment equipment,
+            StatusLoanType statusType,
+            LocalDate endDate,
+            LocalDate startDate
+    );
 }

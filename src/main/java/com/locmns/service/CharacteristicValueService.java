@@ -24,11 +24,13 @@ public class CharacteristicValueService {
     }
 
     // Crée une valeur de caractéristique et l'associe aux équipements envoyés
+    // On force id=null pour garantir une insertion (et empêcher un client d'imposer son propre id)
     public CharacteristicValue create(CharacteristicValue characteristicValue) {
+        characteristicValue.setId(null);
         return characteristicValueDao.save(characteristicValue);
     }
 
-    // Met à jour uniquement la valeur texte d'une caractéristique existante
+    // Met à jour une valeur de caractéristique existante (l'entité possède déjà son id)
     public CharacteristicValue save(CharacteristicValue characteristicValue) {
         return characteristicValueDao.save(characteristicValue);
     }

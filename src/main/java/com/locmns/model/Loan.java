@@ -43,7 +43,8 @@ public class Loan {
     @JsonView(LoanView.class)
     private LocalDate realEndDate;
 
-    // Statut actuel du cycle de vie : VALID → IN_PROGRESS → TERMINE (ou INVALID)
+    // Statut actuel du cycle de vie : IN_PROGRESS (demande en attente) → VALID (validé / en cours) → TERMINE (rendu)
+    // INVALID = demande refusée. "En retard" n'est pas un statut stocké : c'est un VALID dont endDate est dépassée.
     // Géré uniquement par LoanService — jamais modifié directement par le front
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

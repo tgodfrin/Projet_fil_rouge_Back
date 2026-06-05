@@ -154,9 +154,11 @@ public class EquipmentService {
             return;
         }
 
-        // 2. Emprunt non-INVALID qui chevauche la période (bornes incluses)
-        boolean isOnLoan = loanDao.existsByEquipmentAndStatusTypeNotAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
-                equipment, StatusLoanType.INVALID, endDate, startDate);
+        // 2. Emprunt VALID qui chevauche la période (bornes incluses)
+        // Même règle que setCalculatedStatus (vue date unique) : "en prêt" = emprunt VALID qui chevauche.
+        // On ne compte ni les demandes en attente (IN_PROGRESS), ni les emprunts terminés (TERMINE), ni les refus (INVALID).
+        boolean isOnLoan = loanDao.existsByEquipmentAndStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
+                equipment, StatusLoanType.VALID, endDate, startDate);
         equipment.setStatus(isOnLoan ? "EN_PRET" : "DISPONIBLE");
     }
 

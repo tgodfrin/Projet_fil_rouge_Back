@@ -3,13 +3,14 @@ package com.locmns.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.locmns.dto.AppUserRequest;
 import com.locmns.dto.AppUserUpdateRequest;
+import com.locmns.dto.ChangeEmailRequest;
+import com.locmns.dto.ChangePasswordRequest;
 import com.locmns.model.AppUser;
 import com.locmns.model.Profil;
 import com.locmns.service.AppUserService;
 import com.locmns.service.EmailService;
 import com.locmns.view.AppUserView;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,14 +90,14 @@ public class AppUserController {
     }
 
     // Allows the authenticated collaborator to change their own password (no gestionnaire role required)
+    // Les identifiants passent par le corps de requête (body JSON), jamais en paramètres d'URL
     @IsUser
     @PutMapping("/user/me/password")
     public ResponseEntity<Void> updateMyPassword(
             @AuthenticationPrincipal AppUserDetails userDetails,
-            @RequestParam @NotBlank(message = "L'ancien mot de passe ne peut pas etre vide") String oldPassword,
-            @RequestParam @NotBlank(message = "Le nouveau mot de passe ne peut pas etre vide") String password) {
+            @RequestBody @Valid ChangePasswordRequest dto) {
         try {
-            appUserService.updatePassword(userDetails.getUser().getId(), oldPassword, password);
+            appUserService.updatePassword(userDetails.getUser().getId(), dto.getOldPassword(), dto.getPassword());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -105,30 +106,28 @@ public class AppUserController {
         }
     }
 
-    // Modifier son propre email (tous les utilisateurs authentifies)
+    // Modifier son propre email (tous les utilisateurs authentifies) — email dans le body JSON
     @IsUser
     @PutMapping("/user/me/email")
     public ResponseEntity<Void> updateMyEmail(
             @AuthenticationPrincipal AppUserDetails userDetails,
-            @RequestParam @NotBlank(message = "L'email ne peut pas etre vide")
-            @Email(message = "L'email est mal forme") String email) {
+            @RequestBody @Valid ChangeEmailRequest dto) {
         try {
-            appUserService.updateEmail(userDetails.getUser().getId(), email);
+            appUserService.updateEmail(userDetails.getUser().getId(), dto.getEmail());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    // Modifier uniquement l'email (gestionnaire uniquement — par ID)
+    // Modifier uniquement l'email (gestionnaire uniquement — par ID) — email dans le body JSON
     @IsGestionnaire
     @PutMapping("/user/{id}/email")
     public ResponseEntity<Void> updateEmail(
             @PathVariable Integer id,
-            @RequestParam @NotBlank(message = "L'email ne peut pas etre vide")
-            @Email(message = "L'email est mal forme") String email) {
+            @RequestBody @Valid ChangeEmailRequest dto) {
         try {
-            appUserService.updateEmail(id, email);
+            appUserService.updateEmail(id, dto.getEmail());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -137,13 +136,13 @@ public class AppUserController {
 
     // Modifier le password par ID — gestionnaire peut changer n'importe qui,
     // utilisateur peut changer uniquement son propre mot de passe
+    // Les identifiants passent par le corps de requête (body JSON), jamais en paramètres d'URL
     @IsUser
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Integer id,
             @AuthenticationPrincipal AppUserDetails userDetails,
-            @RequestParam @NotBlank(message = "L'ancien mot de passe ne peut pas etre vide") String oldPassword,
-            @RequestParam @NotBlank(message = "Le nouveau mot de passe ne peut pas etre vide") String password) {
+            @RequestBody @Valid ChangePasswordRequest dto) {
         // Un utilisateur ne peut modifier que son propre mot de passe
         // Seul un gestionnaire peut modifier le mot de passe d'un autre utilisateur
         boolean isGestionnaire = userDetails.getAuthorities().stream()
@@ -152,11 +151,11 @@ public class AppUserController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         try {
-            appUserService.updatePassword(id, oldPassword, password);
+            appUserService.updatePassword(id, dto.getOldPassword(), dto.getPassword());
             // When a gestionnaire changes another user's password, notify them by email
             if (isGestionnaire && !userDetails.getUser().getId().equals(id)) {
                 appUserService.findById(id).ifPresent(targetUser ->
-                    emailService.sendPasswordEmail(targetUser.getEmail(), targetUser.getName(), password)
+                    emailService.sendPasswordEmail(targetUser.getEmail(), targetUser.getName(), dto.getPassword())
                 );
             }
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
