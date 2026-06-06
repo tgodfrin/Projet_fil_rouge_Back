@@ -154,11 +154,10 @@ public class EquipmentService {
             return;
         }
 
-        // 2. Emprunt VALID qui chevauche la période (bornes incluses)
-        // Même règle que setCalculatedStatus (vue date unique) : "en prêt" = emprunt VALID qui chevauche.
-        // On ne compte ni les demandes en attente (IN_PROGRESS), ni les emprunts terminés (TERMINE), ni les refus (INVALID).
-        boolean isOnLoan = loanDao.existsByEquipmentAndStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
-                equipment, StatusLoanType.VALID, endDate, startDate);
+        // Un emprunt validé occupe le matériel tant qu'il n'a pas été rendu.
+        // La date de fin prévue ne libère pas le matériel : seul le retour effectif (realEndDate) le fait.
+        // Un emprunt validé en retard reste donc "en prêt", y compris sur une période future.
+        boolean isOnLoan = loanDao.existsValidLoanOccupyingPeriod(equipment, startDate, endDate);
         equipment.setStatus(isOnLoan ? "EN_PRET" : "DISPONIBLE");
     }
 

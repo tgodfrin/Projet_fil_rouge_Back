@@ -5,65 +5,45 @@ import com.locmns.model.AppUser;
 import com.locmns.model.Equipment;
 import com.locmns.model.Loan;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public interface LoanDao extends JpaRepository<Loan, Integer> {
 
-    // Retourne tous les emprunts d'un utilisateur donné (celui qui a fait la demande)
-    // Utilisé pour la vue "mes emprunts" côté utilisateur
+    // Emprunts d'un utilisateur, pour la vue "mes emprunts".
     List<Loan> findByRequester(AppUser requester);
 
-    // Retourne tous les emprunts ayant un statut précis
-    // Ex: findByStatusType(IN_PROGRESS) → tous les emprunts en cours
+    // Emprunts ayant un statut donné, par exemple les demandes en attente de validation.
     List<Loan> findByStatusType(StatusLoanType statusType);
 
-    // Retourne les emprunts dont la date de fin est dépassée ET dont le statut correspond
-    // Utilisé pour détecter les retards (endDate < today + statut VALID)
+    // Emprunts dont la date de fin est dépassée pour un statut donné, pour détecter les retards.
     List<Loan> findByEndDateBeforeAndStatusType(LocalDate date, StatusLoanType statusType);
 
-    // Retourne tout l'historique des emprunts pour un équipement précis
-    // Utilisé pour la vue détail équipement
+    // Historique des emprunts d'un équipement.
     List<Loan> findByEquipment(Equipment equipment);
 
-    // Retourne tous les emprunts qui chevauchent une période donnée (vue planning)
-    // Logique : un emprunt chevauche si son début <= fin de la fenêtre ET sa fin >= début de la fenêtre
-    List<Loan> findByBeginDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate end, LocalDate begin);
-
-    // Même logique de chevauchement mais filtrée sur un statut précis
-    // Utilisé par findForPlanning() pour n'afficher que les emprunts VALID dans le planning gestionnaire
+    // Emprunts d'un statut donné qui chevauchent une période, utilisé par le planning (filtré sur VALID).
     List<Loan> findByStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
             StatusLoanType status, LocalDate end, LocalDate begin);
 
-    // Vérifie si un utilisateur a au moins un emprunt avec un statut donné
-    // Utilisé avant suppression d'un user pour bloquer si VALID, ou cascader si IN_PROGRESS
+    // Indique si l'utilisateur a au moins un emprunt du statut donné, contrôle effectué avant suppression.
     boolean existsByRequesterAndStatusType(AppUser requester, StatusLoanType statusType);
 
-    // Retourne tous les emprunts d'un utilisateur avec un statut précis
-    // Utilisé pour récupérer les demandes IN_PROGRESS avant suppression en cascade
-    List<Loan> findByRequesterAndStatusType(AppUser requester, StatusLoanType statusType);
-
-    // Vérifie s'il existe au moins un emprunt avec ce statut pour cet équipement
-    // Utilisé par EquipmentService pour calculer le statut EN_PRET (loan IN_PROGRESS actif)
-    // exists... est plus léger que find... car renvoie un boolean sans charger l'objet entier
-    boolean existsByEquipmentAndStatusType(Equipment equipment, StatusLoanType statusType);
-
-    // Vérifie si un emprunt VALID a déjà commencé (beginDate <= date) pour un équipement
-    // Utilisé pour n'afficher EN_PRET que si l'emprunt a effectivement démarré
+    // Indique si un emprunt validé a déjà commencé pour cet équipement, pour le calcul du statut sur une date unique.
     boolean existsByEquipmentAndStatusTypeAndBeginDateLessThanEqual(
             Equipment equipment, StatusLoanType statusType, LocalDate date);
 
-    // Supprime tous les emprunts liés à un équipement (utilisé avant suppression de l'équipement)
+    // Supprime les emprunts d'un équipement, avant la suppression de l'équipement lui-même.
     void deleteByEquipment(Equipment equipment);
 
-    // Returns all loans sharing the same groupId — used for group validation/refusal
+    // Emprunts partageant le même groupId, pour la validation ou le refus d'un groupe.
     List<Loan> findByGroupId(String groupId);
 
-    // Vérifie si un emprunt non-INVALID chevauche la période donnée pour un équipement précis
-    // Utilisé dans LoanService.create() pour détecter les conflits avant de sauvegarder
-    // Condition de chevauchement : beginDate < endDate demandée ET endDate > beginDate demandée
-    // statusType != INVALID → on ignore les demandes refusées, elles ne bloquent pas l'équipement
+    // Indique si un emprunt non refusé chevauche déjà la période demandée pour cet équipement.
+    // Sert à bloquer les conflits de réservation au moment de la création, dans une transaction.
     boolean existsByEquipmentAndStatusTypeNotAndBeginDateLessThanAndEndDateGreaterThan(
             Equipment equipment,
             StatusLoanType excludedStatus,
@@ -71,22 +51,20 @@ public interface LoanDao extends JpaRepository<Loan, Integer> {
             LocalDate requestedBeginDate
     );
 
-    // Vérifie si un emprunt non-INVALID chevauche une période (bornes incluses)
-    // Utilisé par EquipmentService pour calculer le statut EN_PRET sur une période donnée (vue gestionnaire)
-    boolean existsByEquipmentAndStatusTypeNotAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
-            Equipment equipment,
-            StatusLoanType excludedStatus,
-            LocalDate endDate,
-            LocalDate startDate
-    );
-
-    // Vérifie si un emprunt d'un statut précis chevauche une période (bornes incluses)
-    // Utilisé pour calculer EN_PRET sur une période : un matériel est "en prêt" s'il existe
-    // un emprunt VALID dont la période chevauche la fenêtre demandée (même règle que la vue date unique)
-    boolean existsByEquipmentAndStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
-            Equipment equipment,
-            StatusLoanType statusType,
-            LocalDate endDate,
-            LocalDate startDate
+    // Indique si un emprunt validé occupe l'équipement sur la période consultée.
+    // Un emprunt validé n'est libéré que par son retour effectif : tant qu'il reste VALID il occupe le
+    // matériel, même en retard (date de fin dépassée). On le considère occupant si sa période chevauche
+    // la fenêtre demandée, ou s'il est en retard (fin antérieure à aujourd'hui alors qu'il n'a pas été rendu).
+    @Query("""
+            SELECT COUNT(l) > 0 FROM Loan l
+            WHERE l.equipment = :equipment
+            AND l.statusType = com.locmns.enums.StatusLoanType.VALID
+            AND l.beginDate <= :endDate
+            AND (l.endDate >= :startDate OR l.endDate < CURRENT_DATE)
+            """)
+    boolean existsValidLoanOccupyingPeriod(
+            @Param("equipment") Equipment equipment,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
 }

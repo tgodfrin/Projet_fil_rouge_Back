@@ -12,24 +12,24 @@ import java.util.Collection;
 
 public interface EquipmentDao extends JpaRepository<Equipment, Integer> {
 
-    // Returns true if at least one equipment belongs to the given family
-    // Used to block deletion of a non-empty family (see EquipmentFamilyController.delete)
+    // Indique si au moins un équipement appartient à la famille, pour empêcher la suppression d'une famille non vide.
     boolean existsByEquipmentFamily(EquipmentFamily equipmentFamily);
 
-    // Retourne tous les équipements appartenant à l'une des familles données
-    // Utilisé pour le catalogue filtré par profil : ne montre que les familles autorisées
+    // Équipements appartenant à l'une des familles données, pour le catalogue filtré par profil.
     List<Equipment> findByEquipmentFamilyIn(Collection<EquipmentFamily> families);
 
-    // Retourne les équipements disponibles sur une période donnée, dans les familles autorisées
-    // Combine la logique de dispo + le filtre profil pour le catalogue utilisateur avec dates
+    // Équipements disponibles sur une période, dans les familles autorisées.
+    // Un équipement est écarté s'il a un emprunt non refusé qui chevauche la période,
+    // s'il a un emprunt validé en retard non rendu (toujours sorti), ou s'il a un statut technique actif.
     @Query("""
             SELECT e FROM Equipment e
             WHERE e.equipmentFamily IN :families
             AND e NOT IN (
                 SELECT l.equipment FROM Loan l
-                WHERE l.statusType != com.locmns.enums.StatusLoanType.INVALID
+                WHERE l.statusType <> com.locmns.enums.StatusLoanType.INVALID
                 AND l.beginDate < :endDate
-                AND l.endDate > :beginDate
+                AND (l.endDate > :beginDate
+                     OR (l.statusType = com.locmns.enums.StatusLoanType.VALID AND l.endDate < CURRENT_DATE))
             )
             AND e NOT IN (
                 SELECT s.equipment FROM StatusEquipment s
@@ -42,5 +42,4 @@ public interface EquipmentDao extends JpaRepository<Equipment, Integer> {
             @Param("endDate") LocalDateTime endDate,
             @Param("families") Collection<EquipmentFamily> families
     );
-
 }
