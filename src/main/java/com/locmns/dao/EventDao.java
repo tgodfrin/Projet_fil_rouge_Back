@@ -11,31 +11,23 @@ import java.util.List;
 
 public interface EventDao extends JpaRepository<Event, Integer> {
 
-    // Retourne tous les événements liés à un emprunt précis (incidents, retours anticipés, extensions)
-    // Utilisé pour afficher l'historique d'un prêt
+    // Événements liés à un emprunt, pour afficher l'historique d'un prêt.
     List<Event> findByLoan(Loan loan);
 
-    // Retourne tous les événements non lus (readingDate IS NULL = pas encore consulté)
-    // Utilisé pour alimenter le compteur de notifications du gestionnaire
+    // Événements non lus par le gestionnaire (readingDate à null), pour le compteur de notifications.
     List<Event> findByReadingDateIsNull();
 
-    // Retourne tous les événements liés à un équipement (via ses loans)
-    // Utilisé pour alimenter l'onglet alertes du gestionnaire
-    List<Event> findByLoan_Equipment_Id(Integer equipmentId);
-
-    // Supprime tous les events liés aux loans d'un équipement donné
-    // Must be called before loanDao.deleteByEquipment to avoid FK constraint violation
+    // Supprime les événements liés aux emprunts d'un équipement.
+    // À appeler avant de supprimer les emprunts pour respecter la contrainte de clé étrangère.
     @Modifying
     @Query("DELETE FROM Event e WHERE e.loan.equipment.id = :equipmentId")
     void deleteByEquipmentId(@Param("equipmentId") Integer equipmentId);
 
-    // Retourne tous les events liés aux loans d'un utilisateur donné (via loan.requester.id)
-    // Utilisé pour GET /event/user — affiche les demandes retour/prolongation côté user
-    // Trié du plus récent au plus ancien
+    // Événements liés aux emprunts d'un utilisateur, du plus récent au plus ancien,
+    // pour afficher ses demandes de retour anticipé et de prolongation.
     List<Event> findByLoan_Requester_IdOrderByCreatedAtDesc(Integer requesterId);
 
-    // Supprime tous les events liés à une liste de loans
-    // Used before cascade-deleting a user's pending (IN_PROGRESS) loans
+    // Supprime les événements liés à une liste d'emprunts, avant la suppression en cascade des emprunts d'un utilisateur.
     @Modifying
     @Query("DELETE FROM Event e WHERE e.loan IN :loans")
     void deleteByLoanIn(@Param("loans") List<Loan> loans);
