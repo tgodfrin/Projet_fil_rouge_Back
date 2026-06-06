@@ -11,10 +11,10 @@ import java.util.List;
 
 public interface DocDao extends JpaRepository<Doc, Integer> {
 
-    // Retourne tous les docs liés à un équipement via la table fait_reference (@ManyToMany)
+    // Documents liés à un équipement, via la table fait_reference.
     List<Doc> findByEquipmentsId(Integer equipmentId);
 
-    // Supprime toutes les lignes de la table de jointure fait_reference pour un équipement donné
+    // Supprime les lignes de la table de jointure fait_reference pour un équipement.
     @Modifying
     @Transactional
     @Query(value = "DELETE FROM fait_reference WHERE equipment_id = :equipmentId", nativeQuery = true)

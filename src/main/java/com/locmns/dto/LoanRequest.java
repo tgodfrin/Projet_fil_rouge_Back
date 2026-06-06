@@ -16,13 +16,13 @@ public class LoanRequest {
     @NotNull(message = "La date de fin est obligatoire")
     private LocalDate endDate;
 
-    // Ignored by the server — the requester is resolved from the JWT (see LoanController.create).
-    // Kept optional for backward compatibility with the current front payload.
+    // Ignoré par le serveur : le demandeur est déterminé à partir du token JWT (voir LoanController.create).
+    // Laissé optionnel pour rester compatible avec le format envoyé actuellement par le front.
     private Integer requesterId;
 
     @NotNull(message = "L'équipement est obligatoire")
     private Integer equipmentId;
 
-    // Optional — null for individual loans, UUID string for grouped loan requests
+    // Optionnel : null pour un emprunt individuel, UUID pour une demande groupée.
     private String groupId;
 }

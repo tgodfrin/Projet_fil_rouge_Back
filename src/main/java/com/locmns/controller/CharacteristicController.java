@@ -17,7 +17,7 @@ public class CharacteristicController {
 
     private final CharacteristicDao characteristicDao;
 
-    // Utilisé par le formulaire de création d'équipement pour alimenter les selects de caractéristiques
+    // Alimente les listes déroulantes de caractéristiques du formulaire d'équipement.
     @IsGestionnaire
     @GetMapping("/characteristic/list")
     @JsonView(CharacteristicValueView.class)

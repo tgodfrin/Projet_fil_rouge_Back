@@ -27,7 +27,7 @@ public class LoanController {
 
     private final LoanService loanService;
 
-    // Gestionnaire uniquement : voir tous les emprunts
+    // Gestionnaire uniquement : tous les emprunts.
     @IsGestionnaire
     @GetMapping("/loan/list")
     @JsonView(LoanView.class)
@@ -35,7 +35,7 @@ public class LoanController {
         return loanService.findAll();
     }
 
-    // Détail d'un emprunt — accessible au propriétaire de l'emprunt uniquement (ou gestionnaire)
+    // Détail d'un emprunt, accessible à son propriétaire ou à un gestionnaire.
     @IsUser
     @GetMapping("/loan/{id}")
     @JsonView(LoanView.class)
@@ -44,29 +44,29 @@ public class LoanController {
             @AuthenticationPrincipal AppUserDetails userDetails) {
         Optional<Loan> opt = loanService.findById(id);
         if (opt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        // Contrôle d'appartenance (IDOR) : seul le demandeur (ou un gestionnaire) peut voir l'emprunt
+        // Contrôle d'appartenance : seul le demandeur ou un gestionnaire peut voir l'emprunt.
         if (!isOwnerOrGestionnaire(userDetails, opt.get().getRequester().getId())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
-    // Emprunts d'un utilisateur — un utilisateur ne peut consulter que les siens (ou gestionnaire)
+    // Emprunts d'un utilisateur : on ne peut consulter que les siens, sauf gestionnaire.
     @IsUser
     @GetMapping("/loan/user/{userId}")
     @JsonView(LoanView.class)
     public ResponseEntity<List<Loan>> getByUser(
             @PathVariable Integer userId,
             @AuthenticationPrincipal AppUserDetails userDetails) {
-        // Contrôle d'appartenance (IDOR) : on ne peut lire les emprunts d'un compte que si c'est le sien
+        // Contrôle d'appartenance : on ne lit les emprunts d'un compte que s'il s'agit du sien.
         if (!isOwnerOrGestionnaire(userDetails, userId)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         return new ResponseEntity<>(loanService.findByRequester(userId), HttpStatus.OK);
     }
 
-    // Collaborateur peut faire une demande de pret
-    // The requester is always taken from the JWT, never from the request body — guarantees traceability
+    // Création d'une demande d'emprunt.
+    // Le demandeur est toujours pris dans le token JWT, jamais dans le corps de la requête, pour garantir la traçabilité.
     @IsUser
     @PostMapping("/loan")
     @JsonView(LoanView.class)
@@ -78,15 +78,15 @@ public class LoanController {
             loanService.create(loan);
             return new ResponseEntity<>(loan, HttpStatus.CREATED);
         } catch (LoanService.UnauthorizedEquipmentFamilyException e) {
-            // Le profil de l'utilisateur n'autorise pas la famille de cet équipement
+            // Le profil de l'utilisateur n'autorise pas la famille de cet équipement.
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } catch (LoanService.EquipmentNotAvailableException e) {
-            // L'équipement est déjà réservé sur cette période (race condition bloquée côté back)
+            // L'équipement est déjà réservé sur cette période (conflit bloqué côté serveur).
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
-    // Planning accessible a tous les roles — accepte des dates ISO YYYY-MM-DD (sans heure)
+    // Planning accessible à tous les rôles, avec des dates au format AAAA-MM-JJ.
     @IsUser
     @GetMapping("/loan/planning")
     @JsonView(LoanView.class)
@@ -96,8 +96,8 @@ public class LoanController {
         return loanService.findForPlanning(begin, end);
     }
 
-    // Historique d'emprunts d'un matériel (avec les noms des emprunteurs) — réservé au gestionnaire
-    // C'est une donnée de suivi du parc, pas destinée à l'emprunteur lambda
+    // Historique des emprunts d'un matériel, avec les noms des emprunteurs (gestionnaire uniquement).
+    // C'est une donnée de suivi du parc, pas destinée à l'emprunteur.
     @IsGestionnaire
     @GetMapping("/loan/equipment/{equipmentId}")
     @JsonView(LoanView.class)
@@ -105,7 +105,7 @@ public class LoanController {
         return loanService.findByEquipment(equipmentId);
     }
 
-    // Gestion des retards et demandes en attente : gestionnaire uniquement
+    // Retards et demandes en attente : gestionnaire uniquement.
     @IsGestionnaire
     @GetMapping("/loan/overdue")
     @JsonView(LoanView.class)
@@ -120,8 +120,8 @@ public class LoanController {
         return loanService.findPending();
     }
 
-    // Validation/refus : gestionnaire uniquement
-    // Le validatorId est lu depuis le token JWT — jamais fourni par le client
+    // Validation et refus : gestionnaire uniquement.
+    // L'identifiant du valideur est pris dans le token JWT, jamais fourni par le client.
     @IsGestionnaire
     @PutMapping("/loan/{id}/validate")
     public ResponseEntity<Void> validate(
@@ -146,8 +146,8 @@ public class LoanController {
         }
     }
 
-    // Enregistrement du retour matériel : gestionnaire uniquement
-    // L'utilisateur ne peut que DEMANDER un retour anticipé (signalement), pas enregistrer le retour
+    // Enregistrement du retour du matériel : gestionnaire uniquement.
+    // L'utilisateur peut seulement demander un retour anticipé, pas enregistrer le retour lui-même.
     @IsGestionnaire
     @PutMapping("/loan/{id}/return")
     public ResponseEntity<Void> returnEquipment(@PathVariable Integer id) {
@@ -157,15 +157,15 @@ public class LoanController {
         } catch (LoanService.LoanNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (LoanService.InvalidReturnException e) {
-            // Garde-fou métier : on ne peut enregistrer un retour que sur un emprunt validé/en cours
+            // On ne peut enregistrer un retour que sur un emprunt validé.
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
-    // La validation/refus des demandes de retour anticipé et de prolongation passe désormais
-    // par les endpoints EventController (PUT /event/{id}/accept et /refuse), qui tracent la décision.
+    // La validation et le refus des demandes de retour anticipé et de prolongation passent par
+    // EventController (PUT /event/{id}/accept et /refuse), qui tracent la décision.
 
-    // Get all loans sharing the same groupId — used by front to display group detail
+    // Tous les emprunts d'un même groupe, pour afficher le détail d'un groupe côté front.
     @IsUser
     @GetMapping("/loan/group/{groupId}")
     @JsonView(LoanView.class)
@@ -173,7 +173,7 @@ public class LoanController {
         return loanService.findByGroupId(groupId);
     }
 
-    // Validate all loans in a group at once
+    // Valide tous les emprunts d'un groupe en une fois.
     @IsGestionnaire
     @PutMapping("/loan/group/{groupId}/validate")
     public ResponseEntity<Void> validateGroup(
@@ -183,7 +183,7 @@ public class LoanController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    // Refuse all loans in a group at once
+    // Refuse tous les emprunts d'un groupe en une fois.
     @IsGestionnaire
     @PutMapping("/loan/group/{groupId}/refuse")
     public ResponseEntity<Void> refuseGroup(@PathVariable String groupId) {
@@ -191,8 +191,8 @@ public class LoanController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    // Retourne true si l'appelant est gestionnaire ou s'il est le propriétaire (ownerId) de la ressource
-    // Centralise le contrôle d'appartenance utilisé pour empêcher les accès IDOR
+    // Vrai si l'appelant est gestionnaire ou propriétaire de la ressource.
+    // Centralise le contrôle d'appartenance qui empêche d'accéder aux données d'autrui.
     private boolean isOwnerOrGestionnaire(AppUserDetails userDetails, Integer ownerId) {
         boolean isGestionnaire = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE"));

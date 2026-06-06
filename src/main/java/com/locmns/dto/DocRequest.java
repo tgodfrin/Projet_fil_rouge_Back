@@ -18,6 +18,6 @@ public class DocRequest {
     @NotBlank(message = "L'URL ne peut pas être vide")
     private String url;
 
-    // Liste optionnelle — un doc peut être créé sans équipement lié
+    // Liste optionnelle : un document peut être créé sans équipement lié.
     private List<Integer> equipmentIds;
 }

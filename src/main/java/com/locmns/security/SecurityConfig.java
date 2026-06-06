@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .csrf(c -> c.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
-                // Pas de authorizeHttpRequests : tout est gere par @PreAuthorize sur les controllers
+                // Pas de authorizeHttpRequests : l'autorisation est gérée par @PreAuthorize sur les controllers.
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .build();

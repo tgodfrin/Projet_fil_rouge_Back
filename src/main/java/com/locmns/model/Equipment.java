@@ -23,21 +23,21 @@ public class Equipment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // Exposé dans EquipmentView, LoanView ET StatusEquipmentView (pour identifier l'équipement lié)
+    // Exposé dans EquipmentView, LoanView et StatusEquipmentView pour identifier l'équipement lié.
     @JsonView({EquipmentView.class, LoanView.class, StatusEquipmentView.class})
     protected Integer id;
 
     @Column(length = 20, nullable = false, unique = true)
     @NotBlank
     @Size(min = 3, max = 20)
-    // Exposé dans EquipmentView, LoanView ET StatusEquipmentView
+    // Exposé dans EquipmentView, LoanView et StatusEquipmentView.
     @JsonView({EquipmentView.class, LoanView.class, StatusEquipmentView.class})
     protected String reference;
 
     @Column(length = 30, nullable = false, unique = true)
     @NotBlank
     @Size(min = 3, max = 30)
-    // Exposé dans EquipmentView, LoanView ET StatusEquipmentView
+    // Exposé dans EquipmentView, LoanView et StatusEquipmentView.
     @JsonView({EquipmentView.class, LoanView.class, StatusEquipmentView.class})
     protected String equipmentName;
 
@@ -55,9 +55,9 @@ public class Equipment {
     @JsonView({EquipmentView.class, LoanView.class})
     protected EquipmentFamily equipmentFamily;
 
-    // Champ calculé — PAS en base de données (@Transient = ignoré par JPA/Hibernate)
-    // Valeurs possibles :  DISPONIBLE | EN_PRET | OUT_OF_SERVICE | UNDER_REPAIR
-    // Rempli par EquipmentService.setCalculatedStatus() avant chaque retour d'API
+    // Statut calculé, non stocké en base (@Transient).
+    // Valeurs possibles : DISPONIBLE, EN_PRET, OUT_OF_SERVICE, UNDER_REPAIR.
+    // Rempli par EquipmentService avant chaque retour d'API.
     @Transient
     @JsonView(EquipmentView.class)
     private String status;

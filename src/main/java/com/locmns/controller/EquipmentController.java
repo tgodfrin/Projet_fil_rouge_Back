@@ -26,7 +26,7 @@ public class EquipmentController {
 
     private final EquipmentService equipmentService;
 
-    // Lecture : tout utilisateur authentifie peut voir les equipements
+    // Lecture : tout utilisateur connecté peut voir les équipements.
     @IsUser
     @GetMapping("/equipment/list")
     @JsonView(EquipmentView.class)
@@ -43,8 +43,8 @@ public class EquipmentController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
-    // Catalogue filtré par profil — retourne uniquement les équipements des familles autorisées
-    // L'userId est lu depuis le token JWT, jamais fourni par le client
+    // Catalogue filtré par profil : seuls les équipements des familles autorisées.
+    // L'identifiant de l'utilisateur est pris dans le token JWT, jamais fourni par le client.
     @IsUser
     @GetMapping("/equipment/catalogue")
     @JsonView(EquipmentView.class)
@@ -52,7 +52,7 @@ public class EquipmentController {
         return equipmentService.findForCatalogue(userDetails.getUser().getId());
     }
 
-    // Catalogue disponible sur une période, filtré par profil
+    // Catalogue disponible sur une période, filtré par profil.
     @IsUser
     @GetMapping("/equipment/catalogue/available")
     @JsonView(EquipmentView.class)
@@ -63,8 +63,8 @@ public class EquipmentController {
         return equipmentService.findAvailableForCatalogue(userDetails.getUser().getId(), begin, end);
     }
 
-    // Liste tous les équipements avec leur statut calculé sur une date ou une plage
-    // endDate est optionnel : si absent, startDate sert aussi de date de fin (mode date unique)
+    // Tous les équipements avec leur statut calculé sur une date ou une période.
+    // endDate est optionnel : si absent, startDate sert aussi de date de fin.
     @IsGestionnaire
     @GetMapping("/equipment/list/by-date")
     @JsonView(EquipmentView.class)
@@ -75,14 +75,14 @@ public class EquipmentController {
         return equipmentService.findAllWithStatusForPeriod(startDate, end);
     }
 
-    // Ecriture : seuls les gestionnaires et admins gerent le parc materiel
+    // Écriture : seuls les gestionnaires gèrent le parc matériel.
     @IsGestionnaire
     @PostMapping("/equipment")
     @JsonView(EquipmentView.class)
     public ResponseEntity<Equipment> create(@RequestBody @Valid EquipmentRequest dto) {
         Equipment equipment = toEntity(dto);
         equipmentService.create(equipment);
-        // Reload from DB to get fully populated relations (equipmentFamily, etc.)
+        // On relit depuis la base pour récupérer les relations complètes (famille, etc.).
         Equipment saved = equipmentService.findById(equipment.getId()).orElse(equipment);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }

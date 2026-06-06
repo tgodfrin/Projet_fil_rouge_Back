@@ -41,25 +41,25 @@ public class AppUserService {
 
     public AppUser create(AppUser user) {
         user.setId(null);
-        // Hachage du mot de passe avant persistance en BDD
+        // Hachage du mot de passe avant l'enregistrement.
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // Charger le Profil manage pour eviter l'erreur "detached entity" de JPA
+        // On charge un profil managé pour éviter l'erreur JPA d'entité détachée.
         Profil managedProfil = profilDao.getReferenceById(user.getProfil().getId());
         user.setProfil(managedProfil);
         return appUserDao.save(user);
     }
 
-    // Recherche serveur par nom, prenom ou email (insensible a la casse, contenu partiel)
+    // Recherche par nom, prénom ou email, insensible à la casse et sur contenu partiel.
     public List<AppUser> search(String q) {
         return appUserDao.searchByNameOrLastnameOrEmail(q);
     }
 
-    // Retourne tous les utilisateurs d'un profil donne (GESTIONNAIRE, COLLABORATEUR...)
+    // Tous les utilisateurs d'un profil donné.
     public List<AppUser> findByProfil(String profilType) {
         return appUserDao.findByProfilType(ProfilType.valueOf(profilType));
     }
 
-    // Met à jour les informations d'un utilisateur (sans mot de passe) — réservé aux gestionnaires
+    // Met à jour les informations d'un utilisateur, sans le mot de passe.
     public AppUser update(Integer id, String name, String lastname, String email, Integer profilId)
             throws UserNotFoundException {
         AppUser existing = appUserDao.findById(id).orElseThrow(UserNotFoundException::new);
@@ -72,25 +72,20 @@ public class AppUserService {
     }
 
     /**
-     * Supprime un utilisateur par son id — réservé aux gestionnaires.
-     *
-     * Règles métier :
-     * - Si l'utilisateur a au moins un emprunt VALID (matériel physiquement sorti)
-     *   → refus avec UserHasLoansException (409)
-     * - Sinon (IN_PROGRESS, TERMINE, INVALID ou aucun emprunt)
-     *   → suppression en cascade : events → tous les loans → user
+     * Supprime un utilisateur.
+     * Si l'utilisateur a au moins un emprunt validé (matériel encore sorti), la suppression est refusée.
+     * Sinon, ses emprunts (en attente, terminés, refusés) et leurs événements sont supprimés avant lui.
      */
     @Transactional
     public void delete(Integer id) throws UserNotFoundException, UserHasLoansException {
         AppUser user = appUserDao.findById(id).orElseThrow(UserNotFoundException::new);
 
-        // Block deletion if user has any active (VALID) loan — equipment is physically out
+        // On bloque la suppression si l'utilisateur a un emprunt encore en cours (matériel sorti).
         if (loanDao.existsByRequesterAndStatusType(user, StatusLoanType.VALID)) {
             throw new UserHasLoansException();
         }
 
-        // Cascade-delete ALL loans (IN_PROGRESS, TERMINE, INVALID) and their events
-        // Required to avoid FK constraint violations on the loan and event tables
+        // On supprime d'abord les événements, puis tous les emprunts, pour respecter les clés étrangères.
         List<Loan> allLoans = loanDao.findByRequester(user);
         if (!allLoans.isEmpty()) {
             eventDao.deleteByLoanIn(allLoans);
@@ -111,11 +106,11 @@ public class AppUserService {
             throws UserNotFoundException, InvalidPasswordException {
         AppUser existing = appUserDao.findById(id)
                 .orElseThrow(UserNotFoundException::new);
-        // Verification de l'ancien mot de passe via BCrypt (compare hash BDD avec plaintext)
+        // On vérifie l'ancien mot de passe avant de le remplacer.
         if (!passwordEncoder.matches(oldPassword, existing.getPassword())) {
             throw new InvalidPasswordException();
         }
-        // Hachage du nouveau mot de passe avant persistance
+        // Hachage du nouveau mot de passe avant l'enregistrement.
         existing.setPassword(passwordEncoder.encode(newPassword));
         appUserDao.save(existing);
     }

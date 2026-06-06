@@ -25,7 +25,7 @@ public class EquipmentFamilyController {
     private final EquipmentFamilyDao equipmentFamilyDao;
     private final EquipmentFamilyService equipmentFamilyService;
 
-    // Les catégories sont lisibles par tous les utilisateurs connectés
+    // Les catégories sont lisibles par tous les utilisateurs connectés.
     @IsUser
     @GetMapping("/equipment-family/list")
     @JsonView(EquipmentFamilyView.class)
@@ -70,12 +70,12 @@ public class EquipmentFamilyController {
         } catch (EquipmentFamilyService.FamilyNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (EquipmentFamilyService.FamilyHasEquipmentException e) {
-            // The family still holds equipment — refuse deletion
+            // La famille contient encore du matériel : suppression refusée.
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
-    // Sets which profils (roles) are allowed to borrow this family — updates the can_loan table
+    // Définit quels profils peuvent emprunter cette famille (met à jour la table can_loan).
     @IsGestionnaire
     @PutMapping("/equipment-family/{id}/profils")
     public ResponseEntity<Void> setProfils(@PathVariable Integer id, @RequestBody ProfilIdsRequest dto) {

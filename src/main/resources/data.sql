@@ -1,25 +1,16 @@
--- =============================================
--- JEU DE DONNÉES LOC-MNS
--- Idempotent : safe à rejouer sur ddl-auto=update
--- Tables avec contrainte unique  → ON CONFLICT (...) DO NOTHING
--- Tables sans contrainte unique  → INSERT ... SELECT ... WHERE NOT EXISTS
--- Note : les colonnes @CreationTimestamp (created_at, begin_date, added_date,
---        begin_status_date) sont NOT NULL → fournies explicitement ici
--- =============================================
+-- Jeu de données Loc-MNS.
+-- Rejouable sans risque : les tables avec contrainte unique utilisent ON CONFLICT DO NOTHING,
+-- les autres un INSERT ... SELECT ... WHERE NOT EXISTS.
+-- Les colonnes @CreationTimestamp (created_at, begin_date, added_date, begin_status_date)
+-- sont NOT NULL, donc renseignées explicitement ici.
 
-
--- =============================================
--- 1. PROFILS
--- =============================================
+-- PROFILS
 INSERT INTO profil (type) VALUES ('GESTIONNAIRE')  ON CONFLICT DO NOTHING;
 INSERT INTO profil (type) VALUES ('COLLABORATEUR') ON CONFLICT DO NOTHING;
 INSERT INTO profil (type) VALUES ('INTERVENANT')   ON CONFLICT DO NOTHING;
 INSERT INTO profil (type) VALUES ('STAGIAIRE')     ON CONFLICT DO NOTHING;
 
-
--- =============================================
--- 2. FAMILLES D'ÉQUIPEMENT (catégories fixes)
--- =============================================
+-- FAMILLES D'ÉQUIPEMENT (catégories fixes)
 INSERT INTO equipment_family (name_equipment_family) VALUES ('PC')             ON CONFLICT DO NOTHING;
 INSERT INTO equipment_family (name_equipment_family) VALUES ('Écran')          ON CONFLICT DO NOTHING;
 INSERT INTO equipment_family (name_equipment_family) VALUES ('Casque VR')      ON CONFLICT DO NOTHING;
@@ -27,13 +18,10 @@ INSERT INTO equipment_family (name_equipment_family) VALUES ('Vidéoprojecteur')
 INSERT INTO equipment_family (name_equipment_family) VALUES ('Périphérique')   ON CONFLICT DO NOTHING;
 INSERT INTO equipment_family (name_equipment_family) VALUES ('Autre')          ON CONFLICT DO NOTHING;
 
-
--- =============================================
--- 3. UTILISATEURS (2 gestionnaires, 5 collaborateurs, 3 intervenants, 2 stagiaires)
+-- UTILISATEURS (2 gestionnaires, 5 collaborateurs, 3 intervenants, 2 stagiaires)
 -- Mots de passe haches BCrypt $2a$ (compatible Spring Security BCryptPasswordEncoder) :
 --   admin123 -> $2a$10$d3Lc5jqTd8Y5CfbEhQx/EOSeTL0ABEDjZTJkTKfRdzGMDgnC9EgdO
 --   user123  -> $2a$10$YhwDOU96SOvontBIj6swEuVwPawVTwgXFB.UeqnmAk65NcSmh47G2
--- =============================================
 INSERT INTO app_user (email, name, lastname, password, created_at, profil_id) VALUES
   -- Gestionnaires (mdp : admin123)
   ('jean.martin@mns.fr',    'Jean',    'Martin',   '$2a$10$d3Lc5jqTd8Y5CfbEhQx/EOSeTL0ABEDjZTJkTKfRdzGMDgnC9EgdO', '2024-09-01 08:00:00', (SELECT id FROM profil WHERE type = 'GESTIONNAIRE')),
@@ -52,10 +40,7 @@ INSERT INTO app_user (email, name, lastname, password, created_at, profil_id) VA
   ('camille.robert@mns.fr', 'Camille', 'Robert',   '$2a$10$YhwDOU96SOvontBIj6swEuVwPawVTwgXFB.UeqnmAk65NcSmh47G2', '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE')),
   ('alexis.laurent@mns.fr', 'Alexis',  'Laurent',  '$2a$10$YhwDOU96SOvontBIj6swEuVwPawVTwgXFB.UeqnmAk65NcSmh47G2', '2024-09-04 09:00:00', (SELECT id FROM profil WHERE type = 'STAGIAIRE'));
 
-
--- =============================================
--- 4. ÉQUIPEMENTS (3 par catégorie = 18 équipements)
--- =============================================
+-- ÉQUIPEMENTS (3 par catégorie = 18 équipements)
 INSERT INTO equipment (reference, equipment_name, location, acquisition_date, equipment_family_id) VALUES
 
   -- PC (3)
@@ -106,10 +91,7 @@ INSERT INTO equipment (reference, equipment_name, location, acquisition_date, eq
   ('REF-AUT-003', 'Valise de transport PC', 'Stock',            '2023-08-15',
    (SELECT id FROM equipment_family WHERE name_equipment_family = 'Autre'));
 
-
--- =============================================
--- 5. CAN_LOAN (pas de PK sur la table de jointure → WHERE NOT EXISTS)
--- =============================================
+-- CAN_LOAN (pas de PK sur la table de jointure, d'où WHERE NOT EXISTS)
 INSERT INTO can_loan (profil_id, equipment_family_id)
   SELECT p.id, ef.id FROM profil p, equipment_family ef
   WHERE p.type = 'GESTIONNAIRE'
@@ -135,10 +117,7 @@ INSERT INTO can_loan (profil_id, equipment_family_id)
     AND ef.name_equipment_family IN ('PC', 'Périphérique', 'Autre')
     AND NOT EXISTS (SELECT 1 FROM can_loan cl WHERE cl.profil_id = p.id AND cl.equipment_family_id = ef.id);
 
-
--- =============================================
--- 6. CARACTÉRISTIQUES
--- =============================================
+-- CARACTÉRISTIQUES
 INSERT INTO characteristic (name) VALUES
   ('Processeur'),
   ('RAM'),
@@ -149,10 +128,7 @@ INSERT INTO characteristic (name) VALUES
   ('Luminosité'),
   ('Type de connexion');
 
-
--- =============================================
--- 7. EST_CONSTITUE (pas de PK → WHERE NOT EXISTS)
--- =============================================
+-- EST_CONSTITUE (pas de PK, d'où WHERE NOT EXISTS)
 -- PC : Processeur, RAM, Stockage, OS
 INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
   SELECT c.id, ef.id FROM characteristic c, equipment_family ef
@@ -174,10 +150,7 @@ INSERT INTO est_constitue (caracteristique_id, equipment_family_id)
   WHERE ef.name_equipment_family = 'Vidéoprojecteur'
     AND c.name IN ('Luminosité', 'Type de connexion');
 
-
--- =============================================
--- 8. VALEURS DE CARACTÉRISTIQUES
--- =============================================
+-- VALEURS DE CARACTÉRISTIQUES
 -- PC : MacBook Pro M3
 INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
   ('Apple M3 Pro',      '2023-09-01 00:00:00', (SELECT id FROM characteristic WHERE name = 'Processeur')),
@@ -238,10 +211,7 @@ INSERT INTO characteristic_value (value, begin_date, characteristic_id) VALUES
   ('3000 lumens',      '2023-05-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'Luminosité')),
   ('HDMI / MHL / USB', '2023-05-15 00:00:00', (SELECT id FROM characteristic WHERE name = 'Type de connexion'));
 
-
--- =============================================
--- 9. POSSEDE — valeurs de caractéristiques par équipement
--- =============================================
+-- POSSEDE — valeurs de caractéristiques par équipement
 -- MacBook Pro M3
 INSERT INTO possede (characteristic_value_id, equipment_id)
   SELECT cv.id, e.id FROM characteristic_value cv, equipment e
@@ -305,10 +275,7 @@ INSERT INTO possede (characteristic_value_id, equipment_id)
   SELECT cv.id, e.id FROM characteristic_value cv, equipment e
   WHERE e.reference = 'REF-VP-003' AND cv.value IN ('3000 lumens', 'HDMI / MHL / USB');
 
-
--- =============================================
--- 10. STATUTS ÉQUIPEMENT (incidents / réparations actifs)
--- =============================================
+-- STATUTS ÉQUIPEMENT (incidents / réparations actifs)
 -- PC-003 en réparation (batterie)
 INSERT INTO status_equipment (description_status, status_equipment_type, begin_status_date, equipment_id) VALUES
   ('Batterie défectueuse — envoyé en réparation chez le prestataire.', 'UNDER_REPAIR',
@@ -343,15 +310,10 @@ INSERT INTO status_equipment (description_status, status_equipment_type, begin_s
    '2025-10-01 09:00:00', '2025-10-10 16:00:00',
    (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
 
+-- EMPRUNTS
+-- Toutes les dates sont relatives à CURRENT_DATE et se recalculent à chaque démarrage
 
--- =============================================
--- 11. EMPRUNTS
--- Toutes les dates sont relatives à CURRENT_DATE → se recalculent à chaque démarrage
--- =============================================
-
--- -----------------------------------------------
--- A. EMPRUNTS PASSÉS — TERMINE
--- -----------------------------------------------
+-- EMPRUNTS PASSÉS — TERMINE
 -- Thomas Dupont — PC-001 (J-270 à J-263)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE - INTERVAL '270 days' + TIME '08:00:00',
@@ -495,10 +457,8 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VP-003'));
 
--- -----------------------------------------------
--- B. EMPRUNTS EN RETARD — VALID avec end_date dépassée (validés puis en retard)
--- -----------------------------------------------
--- Emma Petit — ECR-003 (commencé J-10, devait finir J-3 → en retard)
+-- EMPRUNTS EN RETARD — VALID avec end_date dépassée (validés puis en retard)
+-- Emma Petit — ECR-003 (commencé J-10, devait finir J-3, donc en retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE - INTERVAL '10 days' + TIME '08:00:00',
    CURRENT_DATE - INTERVAL '3 days' + TIME '18:00:00',
@@ -508,7 +468,7 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-003'));
 
--- Hugo Michel — PER-003 (commencé J-7, devait finir J-2 → en retard)
+-- Hugo Michel — PER-003 (commencé J-7, devait finir J-2, donc en retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE - INTERVAL '7 days' + TIME '09:00:00',
    CURRENT_DATE - INTERVAL '2 days' + TIME '18:00:00',
@@ -518,9 +478,7 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'sophie.leblanc@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-003'));
 
--- -----------------------------------------------
--- C. EMPRUNTS EN COURS — VALID (validés, end_date >= aujourd'hui)
--- -----------------------------------------------
+-- EMPRUNTS EN COURS — VALID (validés, end_date >= aujourd'hui)
 -- Thomas Dupont — PC-002 (commencé J-2, finit J+10)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE - INTERVAL '2 days' + TIME '08:00:00',
@@ -551,10 +509,8 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-002'));
 
--- -----------------------------------------------
--- C bis. EMPRUNTS EN RETARD — VALID dont endDate est dépassée (pour les alertes retards)
--- -----------------------------------------------
--- Nathan Durand — PER-001 (devait finir J-5 → retard)
+-- EMPRUNTS EN RETARD — VALID dont endDate est dépassée (pour les alertes retards)
+-- Nathan Durand — PER-001 (devait finir J-5, donc en retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE - INTERVAL '12 days' + TIME '08:00:00',
    CURRENT_DATE - INTERVAL '5 days' + TIME '18:00:00',
@@ -564,7 +520,7 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-PER-001'));
 
--- Emma Petit — ECR-001 (devait finir J-3 → retard)
+-- Emma Petit — ECR-001 (devait finir J-3, donc en retard)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE - INTERVAL '10 days' + TIME '09:00:00',
    CURRENT_DATE - INTERVAL '3 days' + TIME '18:00:00',
@@ -574,9 +530,7 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-001'));
 
--- -----------------------------------------------
--- D. EMPRUNTS FUTURS — VALID (begin_date dans le futur, approuvés)
--- -----------------------------------------------
+-- EMPRUNTS FUTURS — VALID (begin_date dans le futur, approuvés)
 -- Camille Robert — AUT-003 (J+4 à J+6)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE + INTERVAL '4 days' + TIME '08:00:00',
@@ -607,9 +561,7 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VP-002'));
 
--- -----------------------------------------------
--- E. DEMANDES EN ATTENTE — IN_PROGRESS sans validator (en attente de validation)
--- -----------------------------------------------
+-- DEMANDES EN ATTENTE — IN_PROGRESS sans validator (en attente de validation)
 -- Marie Leroy — ECR-002 (J+2 à J+6)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE + INTERVAL '2 days' + TIME '08:00:00',
@@ -620,9 +572,7 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    NULL,
    (SELECT id FROM equipment WHERE reference = 'REF-ECR-002'));
 
--- -----------------------------------------------
--- F. EMPRUNTS REFUSÉS
--- -----------------------------------------------
+-- EMPRUNTS REFUSÉS
 -- Thomas Dupont — VP-001 (refusé, équipement en réparation)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES
   (CURRENT_DATE + INTERVAL '3 days' + TIME '08:00:00',
@@ -633,10 +583,7 @@ INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date,
    (SELECT id FROM app_user WHERE email = 'jean.martin@mns.fr'),
    (SELECT id FROM equipment WHERE reference = 'REF-VP-001'));
 
-
--- =============================================
--- 12. ÉVÉNEMENTS (liés aux emprunts)
--- =============================================
+-- ÉVÉNEMENTS (liés aux emprunts)
 -- BREAKDOWN — Lucas Bernard sur PC-002 (emprunt passé J-226)
 INSERT INTO event (description, created_at, type, decision_status, loan_id) VALUES
   ('Panne signalée : le laptop ne s''allume plus après une mise à jour forcée.',
@@ -710,10 +657,7 @@ INSERT INTO event (description, created_at, type, decision_status, loan_id) VALU
       AND equipment_id  = (SELECT id FROM equipment WHERE reference = 'REF-ECR-003')
     ORDER BY begin_date DESC LIMIT 1));
 
-
--- =============================================
--- 13. DOCUMENTS
--- =============================================
+-- DOCUMENTS
 INSERT INTO doc (title, url, added_date) VALUES
   ('Manuel utilisateur MacBook Pro M3',         'https://support.apple.com/macbook-pro',          '2023-09-01 00:00:00'),
   ('Documentation Dell XPS 15',                 'https://www.dell.com/support/xps15',             '2023-06-15 00:00:00'),
@@ -724,10 +668,7 @@ INSERT INTO doc (title, url, added_date) VALUES
   ('Charte d''utilisation du matériel MNS',     'https://intranet.mns.fr/charte-materiel',        '2024-09-01 00:00:00'),
   ('Procédure de signalement d''incident',      'https://intranet.mns.fr/procedure-incident',     '2024-09-01 00:00:00');
 
-
--- =============================================
--- 14. FAIT_REFERENCE — docs liés aux équipements
--- =============================================
+-- FAIT_REFERENCE — docs liés aux équipements
 INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
   WHERE d.title = 'Manuel utilisateur MacBook Pro M3' AND e.reference = 'REF-PC-001';
@@ -760,10 +701,7 @@ INSERT INTO fait_reference (doc_id, equipment_id)
   SELECT d.id, e.id FROM doc d, equipment e
   WHERE d.title = 'Procédure de signalement d''incident';
 
-
--- =============================================
--- 15. ÉQUIPEMENTS SUPPLÉMENTAIRES (1 par catégorie = 6 de plus)
--- =============================================
+-- ÉQUIPEMENTS SUPPLÉMENTAIRES (1 par catégorie = 6 de plus)
 INSERT INTO equipment (reference, equipment_name, location, acquisition_date, equipment_family_id) VALUES
   ('REF-PC-004',  'HP EliteBook 840',         'Salle A101',       '2024-02-10',
    (SELECT id FROM equipment_family WHERE name_equipment_family = 'PC')),
@@ -778,10 +716,7 @@ INSERT INTO equipment (reference, equipment_name, location, acquisition_date, eq
   ('REF-AUT-004', 'Micro-cravate Rode',       'Stock',            '2024-05-12',
    (SELECT id FROM equipment_family WHERE name_equipment_family = 'Autre'));
 
-
--- =============================================
--- 16. EMPRUNTS SUPPLÉMENTAIRES (passé / présent / futur)
--- =============================================
+-- EMPRUNTS SUPPLÉMENTAIRES (passé / présent / futur)
 
 -- Thomas Dupont — PC-004 (J-60 à J-55, terminé)
 INSERT INTO loan (begin_date, end_date, real_end_date, status_type, status_date, requester_id, validator_id, equipment_id) VALUES

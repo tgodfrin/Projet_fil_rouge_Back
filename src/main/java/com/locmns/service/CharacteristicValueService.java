@@ -14,7 +14,7 @@ public class CharacteristicValueService {
 
     private final CharacteristicValueDao characteristicValueDao;
 
-    // Retourne toutes les valeurs de caractéristiques d'un équipement — utilisé par equipment-detail
+    // Valeurs de caractéristiques d'un équipement, pour sa fiche détaillée.
     public List<CharacteristicValue> findByEquipment(Integer equipmentId) {
         return characteristicValueDao.findByEquipmentsId(equipmentId);
     }
@@ -23,19 +23,19 @@ public class CharacteristicValueService {
         return characteristicValueDao.findById(id);
     }
 
-    // Crée une valeur de caractéristique et l'associe aux équipements envoyés
-    // On force id=null pour garantir une insertion (et empêcher un client d'imposer son propre id)
+    // Crée une valeur de caractéristique et l'associe aux équipements envoyés.
+    // On force id à null pour garantir une insertion et empêcher un client d'imposer son identifiant.
     public CharacteristicValue create(CharacteristicValue characteristicValue) {
         characteristicValue.setId(null);
         return characteristicValueDao.save(characteristicValue);
     }
 
-    // Met à jour une valeur de caractéristique existante (l'entité possède déjà son id)
+    // Met à jour une valeur de caractéristique existante.
     public CharacteristicValue save(CharacteristicValue characteristicValue) {
         return characteristicValueDao.save(characteristicValue);
     }
 
-    // Supprime une valeur de caractéristique par son id
+    // Supprime une valeur de caractéristique.
     public void delete(Integer id) {
         characteristicValueDao.deleteById(id);
     }

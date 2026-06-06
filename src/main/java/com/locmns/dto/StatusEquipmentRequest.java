@@ -12,7 +12,7 @@ public class StatusEquipmentRequest {
     @NotNull(message = "Le type de statut est obligatoire")
     private StatusEquipmentType statusEquipmentType;
 
-    // Optional — peut être null si aucune description n'est fournie
+    // Optionnel : peut être null si aucune description n'est fournie.
     private String descriptionStatus;
 
     @NotNull(message = "L'équipement est obligatoire")

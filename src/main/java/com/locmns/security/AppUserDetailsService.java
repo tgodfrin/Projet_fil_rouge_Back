@@ -25,7 +25,7 @@ public class AppUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException(email);
         }
 
-        // On renvoie un AppUserDetails (wrapper) et non l'AppUser directement
+        // On renvoie un AppUserDetails (wrapper) plutôt que l'AppUser directement.
         return new AppUserDetails(optionalUser.get());
     }
 }

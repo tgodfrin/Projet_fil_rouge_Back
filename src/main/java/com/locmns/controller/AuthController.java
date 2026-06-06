@@ -29,13 +29,11 @@ public class AuthController {
     private final PasswordEncoder       passwordEncoder;
     private final EmailService          emailService;
 
-    // DTO pour recevoir email + password
+    // Reçoit l'email et le mot de passe.
     public record LoginRequest(String email, String password) {}
 
     /**
-     * POST /login
-     * Body JSON : { "email": "...", "password": "..." }
-     * Retourne le token JWT en clair (String)
+     * POST /login : reçoit { email, password } et renvoie le token JWT en clair.
      */
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
@@ -56,17 +54,16 @@ public class AuthController {
     }
 
     /**
-     * POST /auth/forgot-password  (public — pas de @IsUser)
-     * Body JSON : { "email": "..." }
-     * Génère un mot de passe temporaire, le sauvegarde haché en BDD, envoie un email.
-     * Retourne 200 OK même si l'email est inconnu — ne révèle pas l'existence d'un compte.
+     * POST /auth/forgot-password (public). Génère un mot de passe temporaire, l'enregistre haché
+     * et l'envoie par email. Répond toujours 200, même si l'email est inconnu, pour ne pas
+     * révéler l'existence d'un compte.
      */
     @PostMapping("/auth/forgot-password")
     public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
         Optional<AppUser> opt = appUserDao.findByEmail(request.getEmail());
         if (opt.isPresent()) {
             AppUser user = opt.get();
-            // Generate an 8-character temporary password
+            // Mot de passe temporaire de 8 caractères.
             String temporaryPassword = UUID.randomUUID().toString().substring(0, 8);
             user.setPassword(passwordEncoder.encode(temporaryPassword));
             appUserDao.save(user);

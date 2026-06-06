@@ -20,9 +20,9 @@ public class EquipmentFamilyService {
     private final EquipmentDao       equipmentDao;
 
     /**
-     * Sets which profils are allowed to borrow the given family (can_loan join table).
-     * The relationship is owned by Profil, so we add/remove the family on each profil's list.
-     * Transactional so the whole update is atomic.
+     * Définit quels profils peuvent emprunter une famille (table can_loan).
+     * La relation est portée par Profil : on ajoute ou on retire la famille dans la liste de chaque profil.
+     * Le tout est transactionnel pour rester atomique.
      */
     @Transactional
     public void setAllowedProfils(Integer familyId, List<Integer> profilIds) throws FamilyNotFoundException {
@@ -47,9 +47,9 @@ public class EquipmentFamilyService {
     }
 
     /**
-     * Deletes a family. Refused (409 via controller) if it still holds equipment.
-     * Otherwise its can_loan associations (owned by Profil) are cleared first to avoid
-     * a foreign-key violation, then the family is removed.
+     * Supprime une famille. La suppression est refusée si elle contient encore du matériel.
+     * Sinon on détache d'abord ses liens can_loan (portés par Profil) pour éviter une violation
+     * de clé étrangère, puis on supprime la famille.
      */
     @Transactional
     public void deleteFamily(Integer familyId) throws FamilyNotFoundException, FamilyHasEquipmentException {
@@ -60,7 +60,7 @@ public class EquipmentFamilyService {
             throw new FamilyHasEquipmentException();
         }
 
-        // Detach the family from every profil's can_loan list before deleting
+        // On détache la famille de la liste can_loan de chaque profil avant de la supprimer.
         List<Profil> profils = profilDao.findAll();
         boolean changed = false;
         for (Profil profil : profils) {
@@ -77,6 +77,6 @@ public class EquipmentFamilyService {
 
     public static class FamilyNotFoundException extends Exception {}
 
-    // Raised when trying to delete a family that still contains equipment
+    // Levée quand on tente de supprimer une famille qui contient encore du matériel.
     public static class FamilyHasEquipmentException extends Exception {}
 }

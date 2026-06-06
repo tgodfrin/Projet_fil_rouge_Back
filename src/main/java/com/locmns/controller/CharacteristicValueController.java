@@ -23,7 +23,7 @@ public class CharacteristicValueController {
 
     private final CharacteristicValueService characteristicValueService;
 
-    // Toutes les caractéristiques d'un équipement — utilisé par l'onglet "Caractéristiques" de equipment-detail
+    // Caractéristiques d'un équipement, pour l'onglet Caractéristiques de la fiche.
     @IsUser
     @GetMapping("/characteristic-value/equipment/{equipmentId}")
     @JsonView(CharacteristicValueView.class)
@@ -31,8 +31,7 @@ public class CharacteristicValueController {
         return characteristicValueService.findByEquipment(equipmentId);
     }
 
-    // Créer une valeur de caractéristique et l'associer à un équipement
-    // Le front envoie : value, equipmentId, characteristicId
+    // Crée une valeur de caractéristique et l'associe à un équipement.
     @IsGestionnaire
     @PostMapping("/characteristic-value")
     @JsonView(CharacteristicValueView.class)
@@ -41,7 +40,7 @@ public class CharacteristicValueController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // Mettre à jour la valeur d'une caractéristique existante
+    // Met à jour la valeur d'une caractéristique existante.
     @IsGestionnaire
     @PutMapping("/characteristic-value/{id}")
     @JsonView(CharacteristicValueView.class)
@@ -56,7 +55,7 @@ public class CharacteristicValueController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Supprimer une valeur de caractéristique par son id
+    // Supprime une valeur de caractéristique par son id.
     @IsGestionnaire
     @DeleteMapping("/characteristic-value/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {

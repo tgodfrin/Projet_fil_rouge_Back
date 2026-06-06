@@ -33,10 +33,10 @@ public class EquipmentService {
     private final EventDao eventDao;
     private final AppUserDao appUserDao;
 
-    // Récupère tous les équipements et calcule leur statut avant de les retourner
+    // Récupère tous les équipements et calcule leur statut avant de les renvoyer.
     public List<Equipment> findAll() {
         List<Equipment> equipments = equipmentDao.findAll();
-        // Pour chaque équipement, on injecte le statut calculé dans le champ @Transient
+        // On injecte le statut calculé dans le champ transient de chaque équipement.
         equipments.forEach(this::setCalculatedStatus);
         return equipments;
     }
@@ -48,9 +48,9 @@ public class EquipmentService {
     }
 
     /**
-     * Retourne uniquement les équipements dont la famille est autorisée par le profil de l'utilisateur.
-     * Utilisé pour le catalogue côté utilisateur — masque les familles hors périmètre.
-     * Si le profil n'a aucune famille configurée, retourne une liste vide.
+     * Équipements dont la famille est autorisée par le profil de l'utilisateur.
+     * Sert au catalogue côté utilisateur et masque les familles hors de son périmètre.
+     * Si le profil n'autorise aucune famille, renvoie une liste vide.
      */
     public List<Equipment> findForCatalogue(Integer userId) {
         AppUser user = appUserDao.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -62,7 +62,7 @@ public class EquipmentService {
         return results;
     }
 
-    // Retourne les équipements disponibles sur une période donnée, filtrés par profil utilisateur
+    // Équipements disponibles sur une période, filtrés par le profil de l'utilisateur.
     public List<Equipment> findAvailableForCatalogue(Integer userId, LocalDate begin, LocalDate end) {
         AppUser user = appUserDao.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         List<EquipmentFamily> allowedFamilies = user.getProfil().getEquipmentFamilies();
@@ -76,7 +76,7 @@ public class EquipmentService {
     }
 
     public void create(Equipment equipment) {
-        // on force id=null pour éviter qu'un client impose son propre id
+        // On force id à null pour qu'un client ne puisse pas imposer son propre identifiant.
         equipment.setId(null);
         equipmentDao.save(equipment);
     }
@@ -95,60 +95,56 @@ public class EquipmentService {
         Equipment equipment = equipmentDao.findById(id)
                 .orElseThrow(EquipmentNotFoundException::new);
 
-        // Deletion in FK-safe order:
-        // 1. ManyToMany join tables
+        // On supprime dans un ordre qui respecte les clés étrangères : d'abord les tables de liaison,
+        // puis les entités liées à l'équipement et à ses emprunts, et enfin l'équipement lui-même.
         characteristicValueDao.deleteJoinByEquipmentId(id);
         docDao.deleteJoinByEquipmentId(id);
-        // 2. Entities with direct FK to equipment or its loans
         statusEquipmentDao.deleteByEquipment(equipment);
-        eventDao.deleteByEquipmentId(id);   // must come before loans (event.loan_id FK)
+        eventDao.deleteByEquipmentId(id);   // avant les emprunts, à cause de la clé étrangère event.loan_id
         loanDao.deleteByEquipment(equipment);
-        // 3. The equipment itself
         equipmentDao.deleteById(id);
     }
 
-    // Calcule et injecte le statut dans le champ @Transient de l'entité
-    // Ordre de priorité : OUT_OF_SERVICE / UNDER_REPAIR > EN_PRET > DISPONIBLE
+    // Calcule le statut affiché et l'injecte dans le champ transient de l'équipement.
+    // Priorité : hors service ou en réparation, puis en prêt, puis disponible.
     private void setCalculatedStatus(Equipment equipment) {
 
-        // 1. Vérifie s'il existe un statut technique actif (panne ou réparation en cours)
-        // endStatusDate IS NULL = pas encore clôturé = toujours actif
+        // Un statut technique encore ouvert (endStatusDate null) est prioritaire sur tout le reste.
         List<StatusEquipment> activeStatuses = statusEquipmentDao
                 .findByEquipmentAndEndStatusDateIsNull(equipment);
 
         if (!activeStatuses.isEmpty()) {
-            // .name() retourne le nom de l'enum sous forme de String : "OUT_OF_SERVICE" ou "UNDER_REPAIR"
+            // Le nom de l'enum donne directement "OUT_OF_SERVICE" ou "UNDER_REPAIR".
             equipment.setStatus(activeStatuses.get(0).getStatusEquipmentType().name());
-            return; // On s'arrête ici — statut technique prioritaire sur tout
+            return;
         }
 
-        // 2. Vérifie s'il existe un emprunt VALID dont beginDate <= aujourd'hui
-        // Un emprunt validé mais pas encore démarré ne doit pas bloquer l'affichage DISPONIBLE
+        // Sinon, l'équipement est en prêt s'il existe un emprunt validé déjà commencé.
+        // Un emprunt validé mais pas encore démarré ne le rend pas indisponible.
         boolean isOnLoan = loanDao.existsByEquipmentAndStatusTypeAndBeginDateLessThanEqual(
                 equipment, StatusLoanType.VALID, LocalDate.now());
         equipment.setStatus(isOnLoan ? "EN_PRET" : "DISPONIBLE");
     }
 
-    // Retourne tous les équipements avec leur statut calculé sur la période donnée
-    // Utilisé par le gestionnaire pour visualiser la disponibilité du parc sur une date ou une plage
+    // Tous les équipements avec leur statut calculé sur la période, pour la vue parc du gestionnaire.
     public List<Equipment> findAllWithStatusForPeriod(LocalDate startDate, LocalDate endDate) {
         List<Equipment> equipments = equipmentDao.findAll();
         equipments.forEach(e -> setCalculatedStatusForPeriod(e, startDate, endDate));
         return equipments;
     }
 
-    // Calcule le statut d'un équipement sur une période donnée (variante de setCalculatedStatus)
-    // Ordre de priorité : OUT_OF_SERVICE / UNDER_REPAIR > EN_PRET > DISPONIBLE
+    // Calcule le statut d'un équipement sur une période (variante de setCalculatedStatus).
+    // Priorité : hors service ou en réparation, puis en prêt, puis disponible.
     private void setCalculatedStatusForPeriod(Equipment equipment, LocalDate startDate, LocalDate endDate) {
         LocalDateTime startDt = startDate.atStartOfDay();
         LocalDateTime endDt   = endDate.atTime(23, 59, 59);
 
-        // 1. Statut technique actif sur la période (panne ou réparation qui chevauche)
+        // Statut technique actif (panne ou réparation) qui chevauche la période.
         boolean hasTechnicalIssue = statusEquipmentDao
                 .existsByEquipmentOverlappingPeriod(equipment, startDt, endDt);
 
         if (hasTechnicalIssue) {
-            // On récupère le type exact du statut actif pour le retourner (OUT_OF_SERVICE ou UNDER_REPAIR)
+            // On récupère le type exact du statut actif à renvoyer.
             List<StatusEquipment> active = statusEquipmentDao.findByEquipmentAndEndStatusDateIsNull(equipment);
             equipment.setStatus(active.isEmpty() ? "OUT_OF_SERVICE" : active.get(0).getStatusEquipmentType().name());
             return;

@@ -34,7 +34,7 @@ public class GlobalExceptionInterceptor {
     public Map<String, String> handleConstraintViolation(ConstraintViolationException ex) {
         Map<String, String> errors = new HashMap<>();
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
-            // propertyPath = "methodName.paramName" → on garde seulement le nom du param
+            // propertyPath vaut "methode.parametre" : on ne garde que le nom du paramètre.
             String field = violation.getPropertyPath().toString();
             field = field.contains(".") ? field.substring(field.lastIndexOf('.') + 1) : field;
             errors.put(field, violation.getMessage());

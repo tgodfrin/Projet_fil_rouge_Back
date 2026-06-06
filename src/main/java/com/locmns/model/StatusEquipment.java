@@ -25,13 +25,13 @@ public class StatusEquipment {
     @JsonView(StatusEquipmentView.class)
     protected Integer id;
 
-    // @CreationTimestamp : rempli automatiquement par Hibernate à la création, non modifiable
+    // Rempli automatiquement par Hibernate à la création, non modifiable.
     @CreationTimestamp
     @Column(updatable = false, nullable = false)
     @JsonView(StatusEquipmentView.class)
     private LocalDateTime beginStatusDate;
 
-    // Null tant que la panne/réparation est en cours — rempli lors du resolve
+    // Null tant que la panne ou la réparation est en cours ; rempli à la clôture.
     @Column
     @JsonView(StatusEquipmentView.class)
     private LocalDateTime endStatusDate;
@@ -46,8 +46,8 @@ public class StatusEquipment {
     @JsonView(StatusEquipmentView.class)
     private StatusEquipmentType statusEquipmentType;
 
-    // On expose l'équipement lié — inclura les champs de Equipment annotés @JsonView(EquipmentView.class)
-    // Attention : Equipment contient un @Transient status, mais il sera null ici (pas calculé dans ce contexte)
+    // On expose l'équipement lié (champs annotés EquipmentView).
+    // Son statut calculé (@Transient) sera null ici car il n'est pas calculé dans ce contexte.
     @ManyToOne
     @JoinColumn(nullable = false)
     @NotNull

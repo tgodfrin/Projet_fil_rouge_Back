@@ -5,7 +5,7 @@ import lombok.Setter;
 
 import java.util.List;
 
-// Body for PUT /equipment-family/{id}/profils — the profils allowed to borrow this family
+// Corps de PUT /equipment-family/{id}/profils : les profils autorisés à emprunter cette famille.
 @Getter
 @Setter
 public class ProfilIdsRequest {

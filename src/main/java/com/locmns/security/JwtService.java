@@ -18,12 +18,12 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-    // Builds the HMAC-SHA signing key from the configured secret (jjwt 0.12 API)
+    // Construit la clé de signature HMAC-SHA à partir du secret configuré.
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    // Generates a JWT signed with the secret key (jjwt 0.12 fluent API)
+    // Génère un JWT signé avec la clé secrète.
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .subject(email)

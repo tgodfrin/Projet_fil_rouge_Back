@@ -37,7 +37,7 @@ public class AppUser {
     protected String lastname;
 
     @Column(nullable = false)
-    // pas de @JsonView : le password n'est jamais serialise
+    // Pas de @JsonView : le mot de passe n'est jamais sérialisé.
     protected String password;
 
     @CreationTimestamp

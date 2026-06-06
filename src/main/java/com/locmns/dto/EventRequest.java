@@ -18,7 +18,7 @@ public class EventRequest {
     @NotBlank(message = "La description ne peut pas être vide")
     private String description;
 
-    // Date demandée (retour anticipé / prolongation) — null pour un incident (BREAKDOWN)
+    // Date demandée pour un retour anticipé ou une prolongation ; null pour un incident.
     private LocalDate requestedDate;
 
     @NotNull(message = "L'emprunt associé est obligatoire")

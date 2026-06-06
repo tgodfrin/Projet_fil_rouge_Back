@@ -34,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    // Builds the HMAC-SHA verification key from the configured secret (jjwt 0.12 API)
+    // Construit la clé de vérification HMAC-SHA à partir du secret configuré.
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
@@ -51,7 +51,7 @@ public class JwtFilter extends OncePerRequestFilter {
             String jwt = token.substring(7);
 
             try {
-                // Extraction de l'email (subject) depuis le token - API jjwt 0.12
+                // Extraction de l'email (subject) depuis le token.
                 String email = Jwts.parser()
                         .verifyWith(getSigningKey())
                         .build()
@@ -66,7 +66,7 @@ public class JwtFilter extends OncePerRequestFilter {
                                 userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Spring Security 6 : utiliser createEmptyContext() plutôt que getContext()
+                // Spring Security 6 : on utilise createEmptyContext().
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(authToken);
                 SecurityContextHolder.setContext(context);

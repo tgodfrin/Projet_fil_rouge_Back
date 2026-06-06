@@ -11,19 +11,16 @@ import java.util.List;
 
 public interface StatusEquipmentDao extends JpaRepository<StatusEquipment, Integer> {
 
-    // Retourne tout l'historique des statuts techniques d'un équipement (pannes, réparations passées et en cours)
-    // Utilisé pour la vue détail équipement
+    // Historique des statuts techniques d'un équipement (pannes et réparations).
     List<StatusEquipment> findByEquipment(Equipment equipment);
 
-    // Retourne le statut technique actuellement actif d'un équipement (endStatusDate IS NULL = toujours en cours)
-    // Si résultat vide → pas de problème technique actif sur cet équipement
+    // Statut technique encore ouvert d'un équipement (endStatusDate null). Liste vide si aucun.
     List<StatusEquipment> findByEquipmentAndEndStatusDateIsNull(Equipment equipment);
 
-    // Supprime tous les statuts techniques liés à un équipement (utilisé avant suppression de l'équipement)
+    // Supprime les statuts techniques d'un équipement, avant la suppression de l'équipement.
     void deleteByEquipment(Equipment equipment);
 
-    // Vérifie si un statut technique (panne/réparation) chevauche la période donnée pour un équipement
-    // Utilisé par EquipmentService pour calculer le statut OUT_OF_SERVICE/UNDER_REPAIR sur une période (vue gestionnaire)
+    // Indique si un statut technique chevauche la période donnée pour un équipement.
     @Query("""
             SELECT COUNT(s) > 0 FROM StatusEquipment s
             WHERE s.equipment = :equipment

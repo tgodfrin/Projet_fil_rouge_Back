@@ -11,17 +11,13 @@ import java.util.Optional;
 
 public interface AppUserDao extends JpaRepository<AppUser, Integer> {
 
-    // Recherche un utilisateur par son email (ex: lors du login)
-    // Retourne un Optional : résultat potentiellement vide sans lever d'exception
+    // Recherche un utilisateur par son email, par exemple lors de la connexion.
     Optional<AppUser> findByEmail(String email);
 
-    // Retourne tous les utilisateurs d'un type de profil donné
-    // Spring Data traduit en : WHERE u.profil.type = :type (JOIN sur profil)
+    // Tous les utilisateurs d'un type de profil donné.
     List<AppUser> findByProfilType(ProfilType type);
 
-    // Recherche textuelle insensible à la casse sur le nom, prénom ou email
-    // @Query nécessaire car la condition est trop complexe pour être déduite du nom de méthode
-    // LOWER + LIKE '%...%' : trouve "marc", "Marc", "MARC" indifféremment
+    // Recherche insensible à la casse sur le nom, le prénom ou l'email.
     @Query("SELECT u FROM AppUser u WHERE " +
            "LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(u.lastname) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

@@ -18,30 +18,29 @@ public class StatusEquipmentService {
     private final StatusEquipmentDao statusEquipmentDao;
     private final EquipmentDao equipmentDao;
 
-    // Retourne tout l'historique des statuts techniques d'un équipement (pannes passées et en cours)
+    // Historique des statuts techniques d'un équipement (pannes passées et en cours).
     public List<StatusEquipment> findByEquipment(Integer equipmentId) throws EquipmentNotFoundException {
         Equipment equipment = equipmentDao.findById(equipmentId)
                 .orElseThrow(EquipmentNotFoundException::new);
         return statusEquipmentDao.findByEquipment(equipment);
     }
 
-    // Crée un nouveau statut technique (signalement d'une panne ou mise en réparation)
-    // endStatusDate est null à la création — la panne est en cours
-    // beginStatusDate est géré automatiquement par @CreationTimestamp sur l'entité
+    // Crée un statut technique (signalement de panne ou mise en réparation).
+    // endStatusDate reste null à la création : la panne est en cours.
+    // beginStatusDate est rempli automatiquement par Hibernate.
     public void create(StatusEquipment statusEquipment) {
         statusEquipment.setId(null);
-        // On s'assure que endStatusDate est null à la création — la panne est ouverte
+        // On force endStatusDate à null : le statut est ouvert à la création.
         statusEquipment.setEndStatusDate(null);
         statusEquipmentDao.save(statusEquipment);
     }
 
-    // Clôture un statut technique (résolution de panne ou fin de réparation)
-    // On ne supprime pas l'entrée — on remplit endStatusDate avec l'heure actuelle
-    // Ainsi l'historique est conservé et le statut passe de "actif" à "terminé"
+    // Clôture un statut technique (fin de panne ou de réparation).
+    // On ne supprime pas la ligne : on renseigne endStatusDate pour conserver l'historique.
     public void resolve(Integer id) throws StatusEquipmentNotFoundException {
         StatusEquipment statusEquipment = statusEquipmentDao.findById(id)
                 .orElseThrow(StatusEquipmentNotFoundException::new);
-        // endStatusDate IS NULL = en cours → on le remplit pour clôturer
+        // endStatusDate null signifie "en cours" : on le renseigne pour clôturer.
         statusEquipment.setEndStatusDate(LocalDateTime.now());
         statusEquipmentDao.save(statusEquipment);
     }

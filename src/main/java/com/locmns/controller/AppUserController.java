@@ -32,7 +32,7 @@ public class AppUserController {
     private final AppUserService appUserService;
     private final EmailService   emailService;
 
-    // Seuls les gestionnaires et admins peuvent lister tous les utilisateurs
+    // Seuls les gestionnaires peuvent lister tous les utilisateurs.
     @IsGestionnaire
     @GetMapping("/user/list")
     @JsonView(AppUserView.class)
@@ -40,7 +40,7 @@ public class AppUserController {
         return appUserService.findAll();
     }
 
-    // Retourne l'utilisateur actuellement authentifié (lu depuis le token JWT)
+    // Utilisateur actuellement connecté, identifié à partir du token JWT.
     @IsUser
     @GetMapping("/user/me")
     @JsonView(AppUserView.class)
@@ -60,20 +60,20 @@ public class AppUserController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
-    // Seuls les gestionnaires et admins peuvent creer un utilisateur
+    // Seuls les gestionnaires peuvent créer un utilisateur.
     @IsGestionnaire
     @PostMapping("/user")
     @JsonView(AppUserView.class)
     public ResponseEntity<AppUser> create(@RequestBody @Validated AppUserRequest dto) {
         AppUser user = toEntity(dto);
         AppUser saved = appUserService.create(user);
-        // Reload from DB to get fully-initialized Profil proxy (avoids LazyInitializationException)
+        // On relit depuis la base pour récupérer un profil complet et éviter une LazyInitializationException.
         return appUserService.findById(saved.getId())
                 .map(u -> new ResponseEntity<>(u, HttpStatus.CREATED))
                 .orElse(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-    // GET /user/search?q= -> recherche serveur par nom, prenom ou email
+    // Recherche par nom, prénom ou email.
     @IsGestionnaire
     @GetMapping("/user/search")
     @JsonView(AppUserView.class)
@@ -81,7 +81,7 @@ public class AppUserController {
         return appUserService.search(q);
     }
 
-    // GET /user/profil/{type} -> tous les utilisateurs d'un profil donne
+    // Tous les utilisateurs d'un profil donné.
     @IsGestionnaire
     @GetMapping("/user/profil/{type}")
     @JsonView(AppUserView.class)
@@ -89,8 +89,8 @@ public class AppUserController {
         return appUserService.findByProfil(type);
     }
 
-    // Allows the authenticated collaborator to change their own password (no gestionnaire role required)
-    // Les identifiants passent par le corps de requête (body JSON), jamais en paramètres d'URL
+    // L'utilisateur connecté change son propre mot de passe.
+    // Les identifiants passent par le corps de la requête, jamais dans l'URL.
     @IsUser
     @PutMapping("/user/me/password")
     public ResponseEntity<Void> updateMyPassword(
@@ -106,7 +106,7 @@ public class AppUserController {
         }
     }
 
-    // Modifier son propre email (tous les utilisateurs authentifies) — email dans le body JSON
+    // L'utilisateur connecté change son propre email (envoyé dans le corps de la requête).
     @IsUser
     @PutMapping("/user/me/email")
     public ResponseEntity<Void> updateMyEmail(
@@ -120,7 +120,7 @@ public class AppUserController {
         }
     }
 
-    // Modifier uniquement l'email (gestionnaire uniquement — par ID) — email dans le body JSON
+    // Modification de l'email d'un utilisateur par son id (gestionnaire uniquement).
     @IsGestionnaire
     @PutMapping("/user/{id}/email")
     public ResponseEntity<Void> updateEmail(
@@ -134,17 +134,15 @@ public class AppUserController {
         }
     }
 
-    // Modifier le password par ID — gestionnaire peut changer n'importe qui,
-    // utilisateur peut changer uniquement son propre mot de passe
-    // Les identifiants passent par le corps de requête (body JSON), jamais en paramètres d'URL
+    // Modification du mot de passe par id : un gestionnaire peut changer celui de n'importe qui,
+    // un utilisateur seulement le sien. Les identifiants passent par le corps de la requête, jamais dans l'URL.
     @IsUser
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Integer id,
             @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestBody @Valid ChangePasswordRequest dto) {
-        // Un utilisateur ne peut modifier que son propre mot de passe
-        // Seul un gestionnaire peut modifier le mot de passe d'un autre utilisateur
+        // Un utilisateur ne peut modifier que son propre mot de passe ; seul un gestionnaire peut modifier celui d'un autre.
         boolean isGestionnaire = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE"));
         if (!isGestionnaire && !userDetails.getUser().getId().equals(id)) {
@@ -152,7 +150,7 @@ public class AppUserController {
         }
         try {
             appUserService.updatePassword(id, dto.getOldPassword(), dto.getPassword());
-            // When a gestionnaire changes another user's password, notify them by email
+            // Quand un gestionnaire change le mot de passe d'un autre utilisateur, on le prévient par email.
             if (isGestionnaire && !userDetails.getUser().getId().equals(id)) {
                 appUserService.findById(id).ifPresent(targetUser ->
                     emailService.sendPasswordEmail(targetUser.getEmail(), targetUser.getName(), dto.getPassword())
@@ -166,7 +164,7 @@ public class AppUserController {
         }
     }
 
-    // Met à jour les informations d'un utilisateur (sans mot de passe) — réservé aux gestionnaires
+    // Met à jour les informations d'un utilisateur, sans le mot de passe (gestionnaire uniquement).
     @IsGestionnaire
     @PutMapping("/user/{id}")
     @JsonView(AppUserView.class)
@@ -183,8 +181,8 @@ public class AppUserController {
         }
     }
 
-    // Supprime un utilisateur — réservé aux gestionnaires
-    // Retourne 409 si l'utilisateur a des emprunts ou des données liées en base
+    // Supprime un utilisateur (gestionnaire uniquement).
+    // Renvoie 409 si l'utilisateur a encore des emprunts ou des données liées.
     @IsGestionnaire
     @DeleteMapping("/user/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {

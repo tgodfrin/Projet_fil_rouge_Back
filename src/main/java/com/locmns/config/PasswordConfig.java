@@ -8,8 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class PasswordConfig {
 
-    // Separe de SecurityConfig pour eviter les dependances circulaires
-    // (SecurityConfig -> AppUserService -> PasswordEncoder -> SecurityConfig)
+    // Séparé de SecurityConfig pour éviter une dépendance circulaire.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

@@ -34,8 +34,7 @@ public class StatusEquipmentController {
         }
     }
 
-    // Signale une nouvelle panne ou mise en réparation sur un équipement
-    // Le front envoie : statusEquipmentType, descriptionStatus, equipmentId
+    // Signale une nouvelle panne ou mise en réparation sur un équipement.
     @IsGestionnaire
     @PostMapping("/status-equipment")
     @JsonView(StatusEquipmentView.class)
@@ -45,7 +44,7 @@ public class StatusEquipmentController {
         return new ResponseEntity<>(statusEquipment, HttpStatus.CREATED);
     }
 
-    // Clôture un statut technique (fin de panne ou de réparation)
+    // Clôture un statut technique (fin de panne ou de réparation).
     @IsGestionnaire
     @PutMapping("/status-equipment/{id}/resolve")
     public ResponseEntity<Void> resolve(@PathVariable Integer id) {

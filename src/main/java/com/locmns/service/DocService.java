@@ -14,7 +14,7 @@ public class DocService {
 
     private final DocDao docDao;
 
-    // Retourne tous les documents liés à un équipement — utilisé par equipment-detail
+    // Documents liés à un équipement, pour sa fiche détaillée.
     public List<Doc> findByEquipment(Integer equipmentId) {
         return docDao.findByEquipmentsId(equipmentId);
     }
@@ -23,13 +23,13 @@ public class DocService {
         return docDao.findById(id);
     }
 
-    // Crée un doc et l'associe aux équipements envoyés par le front (equipments: [{id}])
-    // Hibernate gère l'insertion dans la table fait_reference via la relation @ManyToMany
+    // Crée un document et l'associe aux équipements envoyés.
+    // Hibernate insère les liens dans la table fait_reference via la relation ManyToMany.
     public Doc create(Doc doc) {
         return docDao.save(doc);
     }
 
-    // Supprime un doc et ses entrées dans fait_reference (cascade géré par JPA)
+    // Supprime un document et ses liens dans fait_reference.
     public void delete(Integer id) {
         docDao.deleteById(id);
     }

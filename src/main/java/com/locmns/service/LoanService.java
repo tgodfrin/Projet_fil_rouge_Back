@@ -32,8 +32,8 @@ public class LoanService {
         return loanDao.findById(id);
     }
 
-    // Retourne tous les loans VALID qui chevauchent une période — utilisé par le planning gestionnaire
-    // Filtre sur VALID : les emprunts IN_PROGRESS (en attente) et INVALID (refusés) ne doivent pas apparaître
+    // Emprunts validés qui chevauchent une période, pour le planning du gestionnaire.
+    // On exclut les demandes en attente et les refus : seuls les emprunts validés apparaissent.
     public List<Loan> findForPlanning(LocalDate begin, LocalDate end) {
         return loanDao.findByStatusTypeAndBeginDateLessThanEqualAndEndDateGreaterThanEqual(
                 StatusLoanType.VALID, end, begin);
@@ -45,39 +45,39 @@ public class LoanService {
         return loanDao.findByRequester(user);
     }
 
-    // Retourne tout l'historique des emprunts pour un équipement donné
+    // Historique complet des emprunts d'un équipement.
     public List<Loan> findByEquipment(Integer equipmentId) {
         Equipment equipment = new Equipment();
         equipment.setId(equipmentId);
         return loanDao.findByEquipment(equipment);
     }
 
-    // Retourne les emprunts en retard : VALID dont endDate est dépassée
+    // Emprunts en retard : validés dont la date de fin est dépassée.
     public List<Loan> findOverdue() {
         return loanDao.findByEndDateBeforeAndStatusType(LocalDate.now(), StatusLoanType.VALID);
     }
 
-    // Retourne les demandes en attente de validation gestionnaire (IN_PROGRESS)
+    // Demandes en attente de validation.
     public List<Loan> findPending() {
         return loanDao.findByStatusType(StatusLoanType.IN_PROGRESS);
     }
 
-    // @Transactional garantit que la vérification de dispo et le save() sont atomiques
-    // → deux requêtes simultanées ne peuvent pas passer le check en même temps
+    // La transaction rend atomiques la vérification de disponibilité et l'enregistrement,
+    // pour que deux demandes simultanées ne puissent pas réserver le même créneau.
     @Transactional
     public void create(Loan loan) throws UnauthorizedEquipmentFamilyException, EquipmentNotAvailableException {
         loan.setId(null);
 
-        // Chargement complet du demandeur pour accéder à son profil et ses familles autorisées
+        // On recharge le demandeur pour accéder à son profil et aux familles qu'il peut emprunter.
         AppUser requester = appUserDao.findById(loan.getRequester().getId())
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
-        // Chargement complet de l'équipement pour accéder à sa famille
+        // On recharge l'équipement pour connaître sa famille.
         Equipment equipment = equipmentDao.findById(loan.getEquipment().getId())
                 .orElseThrow(() -> new RuntimeException("Équipement introuvable"));
 
-        // Vérifie que la famille de l'équipement est dans les familles autorisées du profil
-        // Si la liste est vide, aucune famille n'est autorisée → accès refusé
+        // La famille de l'équipement doit faire partie des familles autorisées du profil.
+        // Si le profil n'autorise aucune famille, la demande est refusée.
         boolean isAllowed = requester.getProfil().getEquipmentFamilies().stream()
                 .anyMatch(f -> f.getId().equals(equipment.getEquipmentFamily().getId()));
 
@@ -85,10 +85,9 @@ public class LoanService {
             throw new UnauthorizedEquipmentFamilyException();
         }
 
-        // Vérifie qu'aucun emprunt actif (non-INVALID) ne chevauche la période demandée
-        // Ce check à l'intérieur de la @Transactional empêche la race condition :
-        // si deux requêtes arrivent simultanément, l'une attendra que l'autre termine
-        // avant d'exécuter son propre check → le second échouera sur un conflit déjà sauvegardé
+        // Aucun emprunt actif ne doit déjà chevaucher la période demandée.
+        // Fait dans la transaction, ce contrôle empêche deux demandes simultanées de passer ensemble :
+        // la seconde attend la fin de la première, puis échoue sur le conflit déjà enregistré.
         boolean conflict = loanDao.existsByEquipmentAndStatusTypeNotAndBeginDateLessThanAndEndDateGreaterThan(
                 equipment,
                 StatusLoanType.INVALID,
@@ -100,7 +99,7 @@ public class LoanService {
             throw new EquipmentNotAvailableException();
         }
 
-        // Remplace les POJOs détachés par les entités managées pour éviter l'erreur JPA
+        // On rattache les entités managées à la place des objets détachés, pour éviter une erreur JPA.
         loan.setRequester(requester);
         loan.setEquipment(equipment);
 
@@ -111,8 +110,8 @@ public class LoanService {
         loanDao.save(loan);
     }
 
-    // Le gestionnaire valide une demande : IN_PROGRESS → VALID
-    // getReferenceById retourne un proxy JPA managé — évite une requête SELECT inutile
+    // Validation d'une demande par le gestionnaire : elle passe de "en attente" à "validée".
+    // getReferenceById renvoie un proxy managé et évite un SELECT inutile.
     public void validate(Integer loanId, Integer validatorId) throws LoanNotFoundException {
         Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
         AppUser validator = appUserDao.getReferenceById(validatorId);
@@ -122,7 +121,7 @@ public class LoanService {
         loanDao.save(loan);
     }
 
-    // Le gestionnaire refuse une demande : IN_PROGRESS → INVALID
+    // Refus d'une demande par le gestionnaire.
     public void invalidate(Integer loanId) throws LoanNotFoundException {
         Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
         loan.setStatusType(StatusLoanType.INVALID);
@@ -130,10 +129,9 @@ public class LoanService {
         loanDao.save(loan);
     }
 
-    // Retour du matériel : VALID → TERMINE
-    // realEndDate = date effective du retour physique (sans heure, cohérent avec beginDate/endDate)
-    // Garde-fou métier : on ne peut enregistrer un retour que sur un emprunt validé/en cours.
-    // Une demande en attente (IN_PROGRESS), un emprunt déjà rendu (TERMINE) ou refusé (INVALID) ne peuvent pas être "rendus".
+    // Enregistrement du retour : l'emprunt passe à "terminé" et on note la date de retour réelle.
+    // On ne peut enregistrer un retour que sur un emprunt validé : une demande en attente,
+    // un emprunt déjà rendu ou un emprunt refusé ne peut pas être rendu.
     public void returnEquipment(Integer loanId) throws LoanNotFoundException, InvalidReturnException {
         Loan loan = loanDao.findById(loanId).orElseThrow(LoanNotFoundException::new);
         if (loan.getStatusType() != StatusLoanType.VALID) {
@@ -145,12 +143,12 @@ public class LoanService {
         loanDao.save(loan);
     }
 
-    // Returns all loans sharing the same groupId — used by GET /loan/group/:groupId
+    // Emprunts partageant le même groupId.
     public List<Loan> findByGroupId(String groupId) {
         return loanDao.findByGroupId(groupId);
     }
 
-    // Validates all loans sharing the same groupId — gestionnaire approves the whole group at once
+    // Validation de tous les emprunts d'un même groupe en une seule fois.
     public void validateGroup(String groupId, Integer validatorId) {
         List<Loan> loans = loanDao.findByGroupId(groupId);
         AppUser validator = appUserDao.getReferenceById(validatorId);
@@ -162,7 +160,7 @@ public class LoanService {
         loanDao.saveAll(loans);
     }
 
-    // Refuses all loans sharing the same groupId — gestionnaire rejects the whole group at once
+    // Refus de tous les emprunts d'un même groupe en une seule fois.
     public void refuseGroup(String groupId) {
         List<Loan> loans = loanDao.findByGroupId(groupId);
         loans.forEach(loan -> {
@@ -174,14 +172,13 @@ public class LoanService {
 
     public static class LoanNotFoundException extends Exception {}
 
-    // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement demandé
+    // Levée quand le profil de l'utilisateur n'autorise pas la famille de l'équipement.
     public static class UnauthorizedEquipmentFamilyException extends Exception {}
 
-    // Levée quand un emprunt actif chevauche déjà la période demandée pour cet équipement
-    // Permet de bloquer la race condition côté back, indépendamment du check côté front
+    // Levée quand un emprunt actif chevauche déjà la période demandée pour cet équipement.
     public static class EquipmentNotAvailableException extends Exception {}
 
-    // Levée quand on tente d'enregistrer un retour sur un emprunt qui n'est pas validé/en cours
+    // Levée quand on tente un retour sur un emprunt qui n'est pas validé.
     public static class InvalidReturnException extends Exception {
         public InvalidReturnException(String message) { super(message); }
     }

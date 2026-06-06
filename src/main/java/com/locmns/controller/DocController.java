@@ -26,7 +26,7 @@ public class DocController {
     private final DocService docService;
     private final EquipmentDao equipmentDao;
 
-    // Tous les documents liés à un équipement — utilisé par l'onglet "Documents" de equipment-detail
+    // Documents liés à un équipement, pour l'onglet Documents de la fiche.
     @IsUser
     @GetMapping("/doc/equipment/{equipmentId}")
     @JsonView(DocView.class)
@@ -34,8 +34,7 @@ public class DocController {
         return docService.findByEquipment(equipmentId);
     }
 
-    // Créer un document et l'associer à un ou plusieurs équipements
-    // Le front envoie : title, url, equipmentIds: [1, 2, ...]
+    // Crée un document et l'associe à un ou plusieurs équipements.
     @IsGestionnaire
     @PostMapping("/doc")
     @JsonView(DocView.class)
@@ -44,7 +43,7 @@ public class DocController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // Supprimer un document par son id
+    // Supprime un document par son id.
     @IsGestionnaire
     @DeleteMapping("/doc/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
@@ -57,7 +56,7 @@ public class DocController {
         Doc doc = new Doc();
         doc.setTitle(dto.getTitle());
         doc.setUrl(dto.getUrl());
-        // Use getReferenceById to get JPA-managed references instead of detached entities
+        // On utilise getReferenceById pour obtenir des références managées plutôt que des entités détachées.
         List<Equipment> equipments = dto.getEquipmentIds() != null
                 ? dto.getEquipmentIds().stream()
                     .map(id -> equipmentDao.getReferenceById(id))

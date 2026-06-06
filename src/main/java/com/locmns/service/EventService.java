@@ -23,19 +23,17 @@ public class EventService {
     private final EventDao eventDao;
     private final LoanDao loanDao;
 
-    // Crée un événement (incident, retour anticipé, extension) lié à un emprunt existant
-    // Le front envoie : type, description (motif), requestedDate, loan: { id }
-    // createdAt est géré par Hibernate (@CreationTimestamp), readingDate reste null (non lu),
-    // decisionStatus reste PENDING par défaut (en attente de la décision du gestionnaire)
+    // Crée un événement (incident, retour anticipé ou prolongation) lié à un emprunt.
+    // createdAt est rempli par Hibernate, readingDate reste null (non lu) et
+    // decisionStatus reste à PENDING tant que le gestionnaire n'a pas décidé.
     public Event create(Event event) {
         return eventDao.save(event);
     }
 
     /**
-     * Le gestionnaire accepte une demande de retour anticipé ou de prolongation.
-     * La décision est tracée (decisionStatus = ACCEPTED) et la date de fin de l'emprunt
-     * est mise à jour avec la date demandée. L'emprunt reste VALID ; le passage à TERMINE
-     * se fait séparément quand le matériel est physiquement rendu.
+     * Acceptation d'une demande de retour anticipé ou de prolongation par le gestionnaire.
+     * La décision est tracée (ACCEPTED) et la date de fin de l'emprunt prend la date demandée.
+     * L'emprunt reste validé : il ne passe à "terminé" que lors du retour physique du matériel.
      */
     @Transactional
     public Event accept(Integer eventId) throws EventNotFoundException, InvalidDecisionException {
@@ -48,17 +46,17 @@ public class EventService {
             if (requested == null) {
                 throw new InvalidDecisionException("Aucune date demandée sur cette demande");
             }
-            // Seul un emprunt validé / en cours peut être modifié
+            // Seul un emprunt validé peut être modifié.
             if (loan.getStatusType() != StatusLoanType.VALID) {
                 throw new InvalidDecisionException("Seul un emprunt validé / en cours peut être modifié");
             }
             if (event.getType() == EventType.EARLY_RETURN) {
-                // Garde-fou : la date de retour anticipé doit être antérieure à la date de fin prévue
+                // La date de retour anticipé doit être antérieure à la date de fin prévue.
                 if (!requested.isBefore(loan.getEndDate())) {
                     throw new InvalidDecisionException("La date de retour anticipé doit être antérieure à la date de fin prévue");
                 }
             } else { // EXTENSION
-                // Garde-fou : la nouvelle date doit être postérieure à la date de fin actuelle
+                // La nouvelle date doit être postérieure à la date de fin actuelle.
                 if (!requested.isAfter(loan.getEndDate())) {
                     throw new InvalidDecisionException("La nouvelle date doit être postérieure à la date de fin actuelle");
                 }
@@ -73,8 +71,8 @@ public class EventService {
     }
 
     /**
-     * Le gestionnaire refuse une demande de retour anticipé ou de prolongation.
-     * Le refus est tracé explicitement (decisionStatus = REFUSED) — l'emprunt reste inchangé.
+     * Refus d'une demande de retour anticipé ou de prolongation par le gestionnaire.
+     * Le refus est tracé (REFUSED) et l'emprunt reste inchangé.
      */
     public Event refuse(Integer eventId) throws EventNotFoundException {
         Event event = eventDao.findById(eventId).orElseThrow(EventNotFoundException::new);
@@ -83,12 +81,12 @@ public class EventService {
         return eventDao.save(event);
     }
 
-    // Retourne l'id du demandeur (propriétaire) de l'emprunt lié — utilisé pour le contrôle d'appartenance (IDOR)
+    // Id du demandeur de l'emprunt lié, utilisé pour le contrôle d'appartenance.
     public Optional<Integer> findLoanRequesterId(Integer loanId) {
         return loanDao.findById(loanId).map(loan -> loan.getRequester().getId());
     }
 
-    // Retourne tous les événements liés à un emprunt — utilisé pour l'historique d'un prêt
+    // Tous les événements d'un emprunt, pour afficher son historique.
     public List<Event> findByLoan(Integer loanId) {
         Optional<Loan> loan = loanDao.findById(loanId);
         if (loan.isEmpty()) {
@@ -97,18 +95,18 @@ public class EventService {
         return eventDao.findByLoan(loan.get());
     }
 
-    // Returns all events — used by the alert list to keep read incidents visible after navigation
+    // Tous les événements : la liste d'alertes garde ainsi les incidents lus après une navigation.
     public List<Event> findAll() {
         return eventDao.findAll();
     }
 
-    // Retourne les événements non lus (readingDate IS NULL) — alimente les notifications gestionnaire
+    // Événements non lus, qui alimentent les notifications du gestionnaire.
     public List<Event> findUnread() {
         return eventDao.findByReadingDateIsNull();
     }
 
-    // Retourne tous les events liés aux loans du user connecté
-    // Filtré sur EARLY_RETURN et EXTENSION uniquement (les BREAKDOWN sont pour le gestionnaire)
+    // Événements liés aux emprunts de l'utilisateur connecté.
+    // On ne garde que les retours anticipés et prolongations : les incidents sont pour le gestionnaire.
     public List<Event> findByRequester(Integer userId) {
         return eventDao.findByLoan_Requester_IdOrderByCreatedAtDesc(userId)
                 .stream()
@@ -117,7 +115,7 @@ public class EventService {
                 .toList();
     }
 
-    // Marque un événement comme lu en renseignant sa readingDate à maintenant
+    // Marque un événement comme lu en renseignant sa date de lecture.
     public Optional<Event> markAsRead(Integer id) {
         Optional<Event> opt = eventDao.findById(id);
         if (opt.isEmpty()) {
@@ -131,7 +129,7 @@ public class EventService {
 
     public static class EventNotFoundException extends Exception {}
 
-    // Levée quand la décision sur une demande ne respecte pas les règles métier (date / statut de l'emprunt)
+    // Levée quand la décision ne respecte pas les règles métier (date ou statut de l'emprunt).
     public static class InvalidDecisionException extends Exception {
         public InvalidDecisionException(String message) { super(message); }
     }

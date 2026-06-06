@@ -17,7 +17,7 @@ public class ProfilController {
 
     private final ProfilDao profilDao;
 
-    // Utilisé par le formulaire de création d'utilisateur
+    // Alimente le formulaire de création d'utilisateur.
     @IsGestionnaire
     @GetMapping("/profil/list")
     @JsonView(AppUserView.class)

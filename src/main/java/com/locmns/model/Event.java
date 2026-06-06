@@ -32,25 +32,24 @@ public class Event {
     @JsonView(EventView.class)
     private LocalDateTime createdAt;
 
-    // Motif libre saisi par l'utilisateur (anciennement concaténé "date|motif" dans ce champ)
+    // Motif libre saisi par l'utilisateur.
     @Column(columnDefinition = "TEXT")
     @JsonView(EventView.class)
     protected String description;
 
-    // Date demandée par l'utilisateur pour un retour anticipé ou une prolongation — stockée dans un champ dédié
-    // (plus de parsing fragile de la description). null pour un incident (BREAKDOWN).
+    // Date demandée pour un retour anticipé ou une prolongation ; null pour un incident.
     @Column(nullable = true)
     @JsonView(EventView.class)
     private LocalDate requestedDate;
 
-    // Statut de décision du gestionnaire : PENDING (en attente) → ACCEPTED / REFUSED
-    // Permet d'afficher un statut fiable côté utilisateur et de tracer explicitement les refus
+    // Statut de décision du gestionnaire : en attente, acceptée ou refusée.
+    // Donne un statut fiable côté utilisateur et trace explicitement les refus.
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JsonView(EventView.class)
     private EventStatusType decisionStatus = EventStatusType.PENDING;
 
-    // null = non lu par le gestionnaire ; renseigné = lu
+    // null tant que le gestionnaire n'a pas lu l'événement.
     @Column(nullable = true)
     @JsonView(EventView.class)
     private LocalDateTime readingDate;
@@ -61,8 +60,7 @@ public class Event {
     @JsonView(EventView.class)
     private EventType type;
 
-    // On expose uniquement l'id du Loan pour éviter la boucle infinie Loan→Event→Loan
-    // Loan.id est annoté @JsonView({LoanView.class, EventView.class}) dans Loan.java
+    // On n'expose que l'id de l'emprunt pour éviter une boucle de sérialisation entre Loan et Event.
     @ManyToOne
     @JoinColumn(nullable = false)
     @NotNull

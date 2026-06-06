@@ -16,8 +16,8 @@ public class EmailService {
     private final JavaMailSender mailSender;
 
     /**
-     * Sends a temporary password to the user by email.
-     * The password is sent in plain text — it will be changed on first login.
+     * Envoie un mot de passe temporaire à l'utilisateur par email.
+     * Le mot de passe est envoyé en clair : il devra être changé à la première connexion.
      */
     public void sendPasswordEmail(String toEmail, String name, String temporaryPassword) {
         try {
@@ -33,7 +33,7 @@ public class EmailService {
             );
             mailSender.send(message);
         } catch (Exception e) {
-            // Log the error but do not propagate — password is already saved in DB
+            // On journalise l'erreur sans la propager : le mot de passe est déjà enregistré en base.
             log.error("Échec de l'envoi de l'email à {} : {}", toEmail, e.getMessage());
         }
     }

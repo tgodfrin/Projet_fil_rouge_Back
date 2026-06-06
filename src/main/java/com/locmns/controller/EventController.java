@@ -25,9 +25,8 @@ public class EventController {
 
     private final EventService eventService;
 
-    // Signaler un événement (incident, retour anticipé, extension) lié à un emprunt
-    // Le front envoie : type, description, requestedDate, loanId
-    // Un utilisateur ne peut signaler que sur SES propres emprunts (ou gestionnaire)
+    // Signale un événement (incident, retour anticipé, prolongation) lié à un emprunt.
+    // L'utilisateur ne peut signaler que sur ses propres emprunts, sauf gestionnaire.
     @IsUser
     @PostMapping("/event")
     @JsonView(EventView.class)
@@ -36,7 +35,7 @@ public class EventController {
             @AuthenticationPrincipal AppUserDetails userDetails) {
         Optional<Integer> ownerId = eventService.findLoanRequesterId(dto.getLoanId());
         if (ownerId.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        // Contrôle d'appartenance (IDOR) : on ne peut créer un signalement que sur son propre emprunt
+        // Contrôle d'appartenance : on ne crée un signalement que sur son propre emprunt.
         if (!isOwnerOrGestionnaire(userDetails, ownerId.get())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
@@ -44,7 +43,7 @@ public class EventController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // Historique de tous les événements d'un emprunt précis — propriétaire de l'emprunt ou gestionnaire
+    // Historique des événements d'un emprunt, pour son propriétaire ou un gestionnaire.
     @IsUser
     @GetMapping("/event/loan/{loanId}")
     @JsonView(EventView.class)
@@ -53,15 +52,15 @@ public class EventController {
             @AuthenticationPrincipal AppUserDetails userDetails) {
         Optional<Integer> ownerId = eventService.findLoanRequesterId(loanId);
         if (ownerId.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        // Contrôle d'appartenance (IDOR) : seuls le propriétaire de l'emprunt ou un gestionnaire y accèdent
+        // Contrôle d'appartenance : seuls le propriétaire de l'emprunt ou un gestionnaire y accèdent.
         if (!isOwnerOrGestionnaire(userDetails, ownerId.get())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         return new ResponseEntity<>(eventService.findByLoan(loanId), HttpStatus.OK);
     }
 
-    // Retourne les events EARLY_RETURN et EXTENSION du user connecté (via JWT)
-    // Utilisé côté user pour afficher ses demandes de retour anticipé et prolongation
+    // Retours anticipés et prolongations de l'utilisateur connecté,
+    // pour afficher ses demandes côté utilisateur.
     @IsUser
     @GetMapping("/event/user")
     @JsonView(EventView.class)
@@ -69,7 +68,7 @@ public class EventController {
         return eventService.findByRequester(userDetails.getUser().getId());
     }
 
-    // All events — allows the front to keep read incidents visible after navigation
+    // Tous les événements : le front garde ainsi les incidents lus visibles après navigation.
     @IsGestionnaire
     @GetMapping("/event/list")
     @JsonView(EventView.class)
@@ -77,7 +76,7 @@ public class EventController {
         return eventService.findAll();
     }
 
-    // Notifications non lues du gestionnaire (readingDate IS NULL)
+    // Notifications non lues du gestionnaire.
     @IsGestionnaire
     @GetMapping("/event/unread")
     @JsonView(EventView.class)
@@ -85,7 +84,7 @@ public class EventController {
         return eventService.findUnread();
     }
 
-    // Marquer un événement comme lu (renseigne readingDate à maintenant)
+    // Marque un événement comme lu.
     @IsGestionnaire
     @PutMapping("/event/{id}/read")
     @JsonView(EventView.class)
@@ -95,8 +94,8 @@ public class EventController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
-    // Le gestionnaire accepte une demande de retour anticipé / prolongation
-    // La décision est tracée (ACCEPTED) et la date de fin de l'emprunt est mise à jour
+    // Le gestionnaire accepte une demande de retour anticipé ou de prolongation.
+    // La décision est tracée et la date de fin de l'emprunt est mise à jour.
     @IsGestionnaire
     @PutMapping("/event/{id}/accept")
     @JsonView(EventView.class)
@@ -110,8 +109,8 @@ public class EventController {
         }
     }
 
-    // Le gestionnaire refuse une demande de retour anticipé / prolongation
-    // Le refus est tracé explicitement (REFUSED) — l'emprunt reste inchangé
+    // Le gestionnaire refuse une demande de retour anticipé ou de prolongation.
+    // Le refus est tracé et l'emprunt reste inchangé.
     @IsGestionnaire
     @PutMapping("/event/{id}/refuse")
     @JsonView(EventView.class)
@@ -123,7 +122,7 @@ public class EventController {
         }
     }
 
-    // Retourne true si l'appelant est gestionnaire ou s'il est le propriétaire (ownerId) de la ressource
+    // Vrai si l'appelant est gestionnaire ou propriétaire de la ressource.
     private boolean isOwnerOrGestionnaire(AppUserDetails userDetails, Integer ownerId) {
         boolean isGestionnaire = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE"));

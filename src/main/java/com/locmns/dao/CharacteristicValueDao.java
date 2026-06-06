@@ -11,10 +11,10 @@ import java.util.List;
 
 public interface CharacteristicValueDao extends JpaRepository<CharacteristicValue, Integer> {
 
-    // Retourne toutes les valeurs de caractéristiques liées à un équipement via la table possede (@ManyToMany)
+    // Valeurs de caractéristiques liées à un équipement, via la table possede.
     List<CharacteristicValue> findByEquipmentsId(Integer equipmentId);
 
-    // Supprime toutes les lignes de la table de jointure possede pour un équipement donné
+    // Supprime les lignes de la table de jointure possede pour un équipement.
     @Modifying
     @Transactional
     @Query(value = "DELETE FROM possede WHERE equipment_id = :equipmentId", nativeQuery = true)
