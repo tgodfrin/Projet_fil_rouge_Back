@@ -1,0 +1,1832 @@
+{
+  "info": {
+    "name": "LOC MNS API",
+    "description": "Collection complète de l'API LOC MNS (gestion du parc matériel MNS). Authentification JWT : lancer d'abord 'Authentification > POST /login' pour remplir {{token}}. Toutes les autres requêtes héritent du Bearer {{token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentification",
+      "item": [
+        {
+          "name": "POST /login (gestionnaire)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jean.martin@mns.fr\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Authentifie et stocke le JWT dans la variable {{token}} (utilisée par toutes les autres requêtes)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Le endpoint /login renvoie le JWT en texte brut (pas du JSON).",
+                  "if (pm.response.code === 200) {",
+                  "    const jwt = pm.response.text();",
+                  "    pm.collectionVariables.set('token', jwt);",
+                  "    pm.environment.set('token', jwt);",
+                  "    pm.test('Token JWT enregistré', () => pm.expect(jwt.length).to.be.above(10));",
+                  "} else {",
+                  "    pm.test('Login 200', () => pm.expect(pm.response.code).to.eql(200));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /login (collaborateur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"thomas.dupont@mns.fr\",\n  \"password\": \"user123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Connexion d'un emprunteur. Ajuste le mot de passe si besoin selon ton data.sql."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Le endpoint /login renvoie le JWT en texte brut (pas du JSON).",
+                  "if (pm.response.code === 200) {",
+                  "    const jwt = pm.response.text();",
+                  "    pm.collectionVariables.set('token', jwt);",
+                  "    pm.environment.set('token', jwt);",
+                  "    pm.test('Token JWT enregistré', () => pm.expect(jwt.length).to.be.above(10));",
+                  "} else {",
+                  "    pm.test('Login 200', () => pm.expect(pm.response.code).to.eql(200));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/forgot-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jean.martin@mns.fr\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Utilisateurs",
+      "item": [
+        {
+          "name": "GET /user/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /user/me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /user/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /user/search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/search?q=martin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "martin"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /user/profil/{type}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/profil/COLLABORATEUR",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "profil",
+                "COLLABORATEUR"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nouveau@mns.fr\",\n  \"name\": \"Nouveau\",\n  \"lastname\": \"Compte\",\n  \"password\": \"motdepasse123\",\n  \"profilId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /user/me/password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "me",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"admin123\",\n  \"password\": \"nouveauMdp123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /user/me/email",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/me/email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "me",
+                "email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jean.martin2@mns.fr\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /user/{id}/email",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/3/email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "3",
+                "email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"thomas.dupont2@mns.fr\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /user/{id}/password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/3/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "3",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"user123\",\n  \"password\": \"nouveauMdp123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /user/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "3"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"thomas.dupont@mns.fr\",\n  \"name\": \"Thomas\",\n  \"lastname\": \"Dupont\",\n  \"profilId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /user/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "99"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Profils",
+      "item": [
+        {
+          "name": "GET /profil/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profil/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profil",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Familles d'équipement",
+      "item": [
+        {
+          "name": "GET /equipment-family/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-family/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-family",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /equipment-family/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-family/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-family",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /equipment-family",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-family",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-family"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameEquipmentFamily\": \"Vidéoprojecteurs\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /equipment-family/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-family/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-family",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameEquipmentFamily\": \"Ordinateurs portables\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /equipment-family/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-family/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-family",
+                "99"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /equipment-family/{id}/profils",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-family/1/profils",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-family",
+                "1",
+                "profils"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profilIds\": [\n    1,\n    2,\n    3\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Équipements",
+      "item": [
+        {
+          "name": "GET /equipment/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /equipment/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /equipment/catalogue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/catalogue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "catalogue"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /equipment/catalogue/available",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/catalogue/available?begin={{beginDate}}&end={{endDate}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "catalogue",
+                "available"
+              ],
+              "query": [
+                {
+                  "key": "begin",
+                  "value": "{{beginDate}}"
+                },
+                {
+                  "key": "end",
+                  "value": "{{endDate}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /equipment/list/by-date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/list/by-date?startDate={{beginDate}}&endDate={{endDate}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "list",
+                "by-date"
+              ],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "{{beginDate}}"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /equipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/equipment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference\": \"REF-001\",\n  \"equipmentName\": \"Dell Latitude 5540\",\n  \"location\": \"Salle A1\",\n  \"acquisitionDate\": \"2024-01-15\",\n  \"equipmentFamilyId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /equipment/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference\": \"REF-001\",\n  \"equipmentName\": \"Dell Latitude 5540 (révisé)\",\n  \"location\": \"Salle B2\",\n  \"acquisitionDate\": \"2024-01-15\",\n  \"equipmentFamilyId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /equipment/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "99"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Statuts techniques",
+      "item": [
+        {
+          "name": "GET /status-equipment/equipment/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/status-equipment/equipment/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "status-equipment",
+                "equipment",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /status-equipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/status-equipment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "status-equipment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusEquipmentType\": \"OUT_OF_SERVICE\",\n  \"descriptionStatus\": \"Écran cassé\",\n  \"equipmentId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /status-equipment/{id}/resolve",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/status-equipment/1/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "status-equipment",
+                "1",
+                "resolve"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Emprunts",
+      "item": [
+        {
+          "name": "GET /loan/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /loan/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /loan/user/{userId}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/user/3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "user",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"beginDate\": \"{{beginDate}}\",\n  \"endDate\": \"{{endDate}}\",\n  \"equipmentId\": 1,\n  \"groupId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /loan/planning",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/planning?begin={{beginDate}}&end={{endDate}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "planning"
+              ],
+              "query": [
+                {
+                  "key": "begin",
+                  "value": "{{beginDate}}"
+                },
+                {
+                  "key": "end",
+                  "value": "{{endDate}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /loan/equipment/{equipmentId}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/equipment/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "equipment",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /loan/overdue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/overdue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "overdue"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /loan/pending",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "pending"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /loan/{id}/validate",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/1/validate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "1",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /loan/{id}/invalidate",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/1/invalidate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "1",
+                "invalidate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /loan/{id}/return",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/1/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "1",
+                "return"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /loan/group/{groupId}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/group/{{groupId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "group",
+                "{{groupId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /loan/group/{groupId}/validate",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/group/{{groupId}}/validate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "group",
+                "{{groupId}}",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /loan/group/{groupId}/refuse",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/group/{{groupId}}/refuse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "group",
+                "{{groupId}}",
+                "refuse"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Événements",
+      "item": [
+        {
+          "name": "POST /event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/event",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"BREAKDOWN\",\n  \"description\": \"L'équipement ne s'allume plus\",\n  \"requestedDate\": \"{{endDate}}\",\n  \"loanId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /event/loan/{loanId}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event/loan/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event",
+                "loan",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /event/user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event",
+                "user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /event/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /event/unread",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event/unread",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event",
+                "unread"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /event/{id}/read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event/1/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event",
+                "1",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /event/{id}/accept",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event/1/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event",
+                "1",
+                "accept"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /event/{id}/refuse",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event/1/refuse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "event",
+                "1",
+                "refuse"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "GET /doc/equipment/{equipmentId}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doc/equipment/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doc",
+                "equipment",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /doc",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doc"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Notice d'utilisation\",\n  \"url\": \"https://exemple.fr/notice.pdf\",\n  \"equipmentIds\": [\n    1\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /doc/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doc/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doc",
+                "99"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Caractéristiques (types)",
+      "item": [
+        {
+          "name": "GET /characteristic/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/characteristic/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "characteristic",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Caractéristiques (valeurs)",
+      "item": [
+        {
+          "name": "GET /characteristic-value/equipment/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/characteristic-value/equipment/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "characteristic-value",
+                "equipment",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /characteristic-value",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/characteristic-value",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "characteristic-value"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"16 Go\",\n  \"characteristicId\": 1,\n  \"equipmentId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /characteristic-value/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/characteristic-value/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "characteristic-value",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"32 Go\",\n  \"characteristicId\": 1,\n  \"equipmentId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /characteristic-value/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/characteristic-value/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "characteristic-value",
+                "99"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Scénario fil rouge (emprunt complet)",
+      "item": [
+        {
+          "name": "1. Login gestionnaire",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jean.martin@mns.fr\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Le endpoint /login renvoie le JWT en texte brut (pas du JSON).",
+                  "if (pm.response.code === 200) {",
+                  "    const jwt = pm.response.text();",
+                  "    pm.collectionVariables.set('token', jwt);",
+                  "    pm.environment.set('token', jwt);",
+                  "    pm.test('Token JWT enregistré', () => pm.expect(jwt.length).to.be.above(10));",
+                  "} else {",
+                  "    pm.test('Login 200', () => pm.expect(pm.response.code).to.eql(200));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Catalogue disponible sur la période",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment/catalogue/available?begin={{beginDate}}&end={{endDate}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment",
+                "catalogue",
+                "available"
+              ],
+              "query": [
+                {
+                  "key": "begin",
+                  "value": "{{beginDate}}"
+                },
+                {
+                  "key": "end",
+                  "value": "{{endDate}}"
+                }
+              ]
+            },
+            "description": "Récupère les équipements disponibles et stocke le 1er id dans {{equipmentId}}."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.expect(pm.response.code).to.eql(200));",
+                  "const list = pm.response.json();",
+                  "pm.test('Au moins un équipement disponible', () => pm.expect(list.length).to.be.above(0));",
+                  "if (list.length > 0) {",
+                  "    pm.collectionVariables.set('equipmentId', list[0].id);",
+                  "    pm.environment.set('equipmentId', list[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Créer la demande d'emprunt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/loan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"beginDate\": \"{{beginDate}}\",\n  \"endDate\": \"{{endDate}}\",\n  \"equipmentId\": \"{{equipmentId}}\",\n  \"groupId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Crée l'emprunt (statut IN_PROGRESS) et stocke son id dans {{loanId}}."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.expect(pm.response.code).to.eql(201));",
+                  "const loan = pm.response.json();",
+                  "pm.collectionVariables.set('loanId', loan.id);",
+                  "    pm.environment.set('loanId', loan.id);",
+                  "pm.test('Statut IN_PROGRESS', () => pm.expect(loan.statusType).to.eql('IN_PROGRESS'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Valider la demande",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/{{loanId}}/validate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "{{loanId}}",
+                "validate"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.expect(pm.response.code).to.eql(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Enregistrer le retour",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/loan/{{loanId}}/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loan",
+                "{{loanId}}",
+                "return"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.expect(pm.response.code).to.eql(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Parcours bout en bout de la fonctionnalité fil rouge : connexion, recherche d'un équipement disponible, demande d'emprunt, validation puis retour. À lancer dans l'ordre (ou via le Collection Runner)."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "beginDate",
+      "value": "2026-07-01"
+    },
+    {
+      "key": "endDate",
+      "value": "2026-07-05"
+    },
+    {
+      "key": "equipmentId",
+      "value": "1"
+    },
+    {
+      "key": "loanId",
+      "value": "1"
+    },
+    {
+      "key": "groupId",
+      "value": ""
+    }
+  ]
+}
