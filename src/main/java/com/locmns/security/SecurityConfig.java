@@ -1,6 +1,7 @@
 package com.locmns.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +32,11 @@ public class SecurityConfig {
     protected final UserDetailsService  userDetailsService;
     protected final JwtFilter           filter;
 
+    // Origines autorisees par le CORS, lues depuis application.properties (cors.allowed-origins).
+    // Liste separee par des virgules : ex. "http://localhost:4200,http://mon-ip-vm".
+    @Value("${cors.allowed-origins:http://localhost:4200}")
+    protected List<String> allowedOrigins;
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -56,10 +62,11 @@ public class SecurityConfig {
                 .build();
     }
 
-    // CORS : autorise uniquement le front Angular en dev (remplacer par l'URL de prod au déploiement)
+    // CORS : origines autorisees injectees via cors.allowed-origins (defaut localhost:4200 en dev,
+    // surcharge par CORS_ALLOWED_ORIGINS en production).
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
 
