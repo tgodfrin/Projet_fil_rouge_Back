@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
                         + "événements, statuts techniques, documents et utilisateurs.",
                 contact = @Contact(name = "MNS - Projet fil rouge CDA")
         ),
-        servers = @Server(url = "http://localhost:8080", description = "Environnement de développement local"),
+        servers = @Server(url = "http://localhost:8080/api", description = "Environnement de développement local"),
         // Applique le schéma JWT à toutes les opérations par défaut.
         security = @SecurityRequirement(name = "bearerAuth")
 )
