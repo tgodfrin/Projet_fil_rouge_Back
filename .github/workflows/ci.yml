@@ -1,0 +1,46 @@
+name: CI back
+
+# Integration continue : compile le back et lance les tests (unitaires + integration)
+# a chaque push ou pull request sur develop et main.
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    # Base PostgreSQL temporaire requise par les tests d'integration (suffixe IT).
+    # Memes identifiants et port (5433) que la configuration de test du projet.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: locmns
+          POSTGRES_USER: locmns_user
+          POSTGRES_PASSWORD: locmns_pass
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U locmns_user -d locmns"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer le JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Compiler et lancer les tests
+        run: |
+          chmod +x mvnw
+          ./mvnw --batch-mode verify
