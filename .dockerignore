@@ -1,3 +1,6 @@
 target/
 .git/
 *.md
+.env
+.env.*
+docker-compose*.yml
