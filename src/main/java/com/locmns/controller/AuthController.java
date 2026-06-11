@@ -6,6 +6,11 @@ import com.locmns.model.AppUser;
 import com.locmns.security.AppUserDetails;
 import com.locmns.security.JwtService;
 import com.locmns.service.EmailService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +26,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Authentification", description = "Connexion (JWT) et réinitialisation de mot de passe. Endpoints publics.")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -35,6 +41,16 @@ public class AuthController {
     /**
      * POST /login : reçoit { email, password } et renvoie le token JWT en clair.
      */
+    @Operation(
+            summary = "Authentifier un utilisateur",
+            description = "Vérifie l'email et le mot de passe (BCrypt) puis renvoie un token JWT en clair "
+                    + "à placer dans l'en-tête Authorization: Bearer <token> des requêtes suivantes."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Authentification réussie : token JWT renvoyé dans le corps"),
+            @ApiResponse(responseCode = "401", description = "Email ou mot de passe incorrect")
+    })
+    @SecurityRequirements // endpoint public : pas de cadenas dans Swagger UI
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
         try {
@@ -58,6 +74,15 @@ public class AuthController {
      * et l'envoie par email. Répond toujours 200, même si l'email est inconnu, pour ne pas
      * révéler l'existence d'un compte.
      */
+    @Operation(
+            summary = "Demander un mot de passe temporaire",
+            description = "Génère un mot de passe temporaire, l'enregistre haché et l'envoie par email. "
+                    + "Répond toujours 200, même si l'email est inconnu, pour ne pas révéler l'existence d'un compte."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Demande prise en compte (réponse identique que l'email existe ou non)")
+    })
+    @SecurityRequirements // endpoint public : pas de cadenas dans Swagger UI
     @PostMapping("/auth/forgot-password")
     public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
         Optional<AppUser> opt = appUserDao.findByEmail(request.getEmail());

@@ -10,6 +10,10 @@ import com.locmns.model.Profil;
 import com.locmns.service.AppUserService;
 import com.locmns.service.EmailService;
 import com.locmns.view.AppUserView;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,12 +31,18 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Utilisateurs", description = "Gestion des comptes (gestionnaire) et profil de l'utilisateur connecté : email et mot de passe.")
 public class AppUserController {
 
     private final AppUserService appUserService;
     private final EmailService   emailService;
 
     // Seuls les gestionnaires peuvent lister tous les utilisateurs.
+    @Operation(summary = "Lister tous les utilisateurs", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste des utilisateurs"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @GetMapping("/user/list")
     @JsonView(AppUserView.class)
@@ -41,6 +51,12 @@ public class AppUserController {
     }
 
     // Utilisateur actuellement connecté, identifié à partir du token JWT.
+    @Operation(summary = "Utilisateur connecté", description = "Renvoie le compte identifié par le token JWT.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Compte de l'utilisateur connecté"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié"),
+            @ApiResponse(responseCode = "404", description = "Compte introuvable")
+    })
     @IsUser
     @GetMapping("/user/me")
     @JsonView(AppUserView.class)
@@ -51,6 +67,12 @@ public class AppUserController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    @Operation(summary = "Détail d'un utilisateur", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Utilisateur trouvé"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
     @IsGestionnaire
     @GetMapping("/user/{id}")
     @JsonView(AppUserView.class)
@@ -61,6 +83,12 @@ public class AppUserController {
     }
 
     // Seuls les gestionnaires peuvent créer un utilisateur.
+    @Operation(summary = "Créer un utilisateur", description = "Le mot de passe est haché en BCrypt avant persistance. Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Utilisateur créé"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @PostMapping("/user")
     @JsonView(AppUserView.class)
@@ -74,6 +102,11 @@ public class AppUserController {
     }
 
     // Recherche par nom, prénom ou email.
+    @Operation(summary = "Rechercher des utilisateurs", description = "Recherche par nom, prénom ou email (insensible à la casse). Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Résultats de la recherche"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @GetMapping("/user/search")
     @JsonView(AppUserView.class)
@@ -82,6 +115,11 @@ public class AppUserController {
     }
 
     // Tous les utilisateurs d'un profil donné.
+    @Operation(summary = "Utilisateurs par profil", description = "Liste les comptes d'un type de profil (GESTIONNAIRE, COLLABORATEUR, INTERVENANT, STAGIAIRE). Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Utilisateurs du profil"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @GetMapping("/user/profil/{type}")
     @JsonView(AppUserView.class)
@@ -91,6 +129,15 @@ public class AppUserController {
 
     // L'utilisateur connecté change son propre mot de passe.
     // Les identifiants passent par le corps de la requête, jamais dans l'URL.
+    @Operation(
+            summary = "Changer son propre mot de passe",
+            description = "Exige l'ancien mot de passe (vérifié via BCrypt) et le nouveau. Identifiants dans le corps, jamais dans l'URL."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Mot de passe modifié"),
+            @ApiResponse(responseCode = "401", description = "Ancien mot de passe incorrect"),
+            @ApiResponse(responseCode = "404", description = "Compte introuvable")
+    })
     @IsUser
     @PutMapping("/user/me/password")
     public ResponseEntity<Void> updateMyPassword(
@@ -107,6 +154,12 @@ public class AppUserController {
     }
 
     // L'utilisateur connecté change son propre email (envoyé dans le corps de la requête).
+    @Operation(summary = "Changer son propre email", description = "Le nouvel email est envoyé dans le corps de la requête.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Email modifié"),
+            @ApiResponse(responseCode = "400", description = "Email invalide"),
+            @ApiResponse(responseCode = "404", description = "Compte introuvable")
+    })
     @IsUser
     @PutMapping("/user/me/email")
     public ResponseEntity<Void> updateMyEmail(
@@ -121,6 +174,13 @@ public class AppUserController {
     }
 
     // Modification de l'email d'un utilisateur par son id (gestionnaire uniquement).
+    @Operation(summary = "Modifier l'email d'un utilisateur", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Email modifié"),
+            @ApiResponse(responseCode = "400", description = "Email invalide"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
     @IsGestionnaire
     @PutMapping("/user/{id}/email")
     public ResponseEntity<Void> updateEmail(
@@ -136,6 +196,17 @@ public class AppUserController {
 
     // Modification du mot de passe par id : un gestionnaire peut changer celui de n'importe qui,
     // un utilisateur seulement le sien. Les identifiants passent par le corps de la requête, jamais dans l'URL.
+    @Operation(
+            summary = "Modifier le mot de passe d'un utilisateur par id",
+            description = "Un gestionnaire peut modifier le mot de passe de n'importe qui (l'utilisateur est alors prévenu par email) ; "
+                    + "un utilisateur ne peut modifier que le sien. Identifiants dans le corps, jamais dans l'URL."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Mot de passe modifié"),
+            @ApiResponse(responseCode = "401", description = "Ancien mot de passe incorrect"),
+            @ApiResponse(responseCode = "403", description = "Modification du mot de passe d'un autre compte interdite"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
     @IsUser
     @PutMapping("/user/{id}/password")
     public ResponseEntity<Void> updatePassword(
@@ -165,6 +236,13 @@ public class AppUserController {
     }
 
     // Met à jour les informations d'un utilisateur, sans le mot de passe (gestionnaire uniquement).
+    @Operation(summary = "Modifier un utilisateur", description = "Met à jour nom, prénom, email et profil (sans le mot de passe). Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Utilisateur modifié"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
     @IsGestionnaire
     @PutMapping("/user/{id}")
     @JsonView(AppUserView.class)
@@ -183,6 +261,13 @@ public class AppUserController {
 
     // Supprime un utilisateur (gestionnaire uniquement).
     // Renvoie 409 si l'utilisateur a encore des emprunts ou des données liées.
+    @Operation(summary = "Supprimer un utilisateur", description = "Renvoie 409 si l'utilisateur a encore des emprunts ou des données liées. Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Utilisateur supprimé"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur introuvable"),
+            @ApiResponse(responseCode = "409", description = "Utilisateur lié à des emprunts ou données existantes")
+    })
     @IsGestionnaire
     @DeleteMapping("/user/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {

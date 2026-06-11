@@ -6,6 +6,10 @@ import com.locmns.model.Equipment;
 import com.locmns.model.EquipmentFamily;
 import com.locmns.service.EquipmentService;
 import com.locmns.view.EquipmentView;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,11 +26,17 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Équipements", description = "Gestion du parc matériel et statut calculé (DISPONIBLE, EN_PRET, OUT_OF_SERVICE, UNDER_REPAIR). Catalogue filtré par profil.")
 public class EquipmentController {
 
     private final EquipmentService equipmentService;
 
     // Lecture : tout utilisateur connecté peut voir les équipements.
+    @Operation(summary = "Lister les équipements", description = "Tous les équipements avec leur statut calculé. Tout utilisateur connecté.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste des équipements"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié")
+    })
     @IsUser
     @GetMapping("/equipment/list")
     @JsonView(EquipmentView.class)
@@ -34,6 +44,11 @@ public class EquipmentController {
         return equipmentService.findAll();
     }
 
+    @Operation(summary = "Détail d'un équipement", description = "Tout utilisateur connecté.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Équipement trouvé"),
+            @ApiResponse(responseCode = "404", description = "Équipement introuvable")
+    })
     @IsUser
     @GetMapping("/equipment/{id}")
     @JsonView(EquipmentView.class)
@@ -45,6 +60,13 @@ public class EquipmentController {
 
     // Catalogue filtré par profil : seuls les équipements des familles autorisées.
     // L'identifiant de l'utilisateur est pris dans le token JWT, jamais fourni par le client.
+    @Operation(
+            summary = "Catalogue filtré par profil",
+            description = "Seuls les équipements des familles autorisées au profil de l'utilisateur connecté (token JWT)."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Catalogue autorisé pour le profil")
+    })
     @IsUser
     @GetMapping("/equipment/catalogue")
     @JsonView(EquipmentView.class)
@@ -53,6 +75,14 @@ public class EquipmentController {
     }
 
     // Catalogue disponible sur une période, filtré par profil.
+    @Operation(
+            summary = "Catalogue disponible sur une période",
+            description = "Équipements disponibles entre begin et end, filtrés par profil. Dates au format AAAA-MM-JJ."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Équipements disponibles sur la période"),
+            @ApiResponse(responseCode = "400", description = "Dates manquantes ou mal formées")
+    })
     @IsUser
     @GetMapping("/equipment/catalogue/available")
     @JsonView(EquipmentView.class)
@@ -65,6 +95,14 @@ public class EquipmentController {
 
     // Tous les équipements avec leur statut calculé sur une date ou une période.
     // endDate est optionnel : si absent, startDate sert aussi de date de fin.
+    @Operation(
+            summary = "Équipements avec statut à une date",
+            description = "Statut calculé sur une date ou une période. endDate est optionnel : si absent, startDate sert de date de fin. Gestionnaire uniquement."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Équipements avec statut pour la période"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @GetMapping("/equipment/list/by-date")
     @JsonView(EquipmentView.class)
@@ -76,6 +114,12 @@ public class EquipmentController {
     }
 
     // Écriture : seuls les gestionnaires gèrent le parc matériel.
+    @Operation(summary = "Créer un équipement", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Équipement créé"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @PostMapping("/equipment")
     @JsonView(EquipmentView.class)
@@ -87,6 +131,13 @@ public class EquipmentController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Modifier un équipement", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Équipement modifié"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Équipement introuvable")
+    })
     @IsGestionnaire
     @PutMapping("/equipment/{id}")
     public ResponseEntity<Void> update(
@@ -100,6 +151,12 @@ public class EquipmentController {
         }
     }
 
+    @Operation(summary = "Supprimer un équipement", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Équipement supprimé"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Équipement introuvable")
+    })
     @IsGestionnaire
     @DeleteMapping("/equipment/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {

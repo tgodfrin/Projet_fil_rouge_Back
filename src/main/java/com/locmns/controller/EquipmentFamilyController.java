@@ -7,6 +7,10 @@ import com.locmns.dto.ProfilIdsRequest;
 import com.locmns.model.EquipmentFamily;
 import com.locmns.service.EquipmentFamilyService;
 import com.locmns.view.EquipmentFamilyView;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import com.locmns.security.IsGestionnaire;
 import com.locmns.security.IsUser;
@@ -20,12 +24,18 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Familles d'équipement", description = "Catégories de matériel et droits d'emprunt par profil (table can_loan).")
 public class EquipmentFamilyController {
 
     private final EquipmentFamilyDao equipmentFamilyDao;
     private final EquipmentFamilyService equipmentFamilyService;
 
     // Les catégories sont lisibles par tous les utilisateurs connectés.
+    @Operation(summary = "Lister les familles", description = "Lisible par tout utilisateur connecté.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste des familles"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié")
+    })
     @IsUser
     @GetMapping("/equipment-family/list")
     @JsonView(EquipmentFamilyView.class)
@@ -33,6 +43,11 @@ public class EquipmentFamilyController {
         return equipmentFamilyDao.findAll();
     }
 
+    @Operation(summary = "Détail d'une famille", description = "Lisible par tout utilisateur connecté.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Famille trouvée"),
+            @ApiResponse(responseCode = "404", description = "Famille introuvable")
+    })
     @IsUser
     @GetMapping("/equipment-family/{id}")
     @JsonView(EquipmentFamilyView.class)
@@ -42,6 +57,12 @@ public class EquipmentFamilyController {
         return new ResponseEntity<>(opt.get(), HttpStatus.OK);
     }
 
+    @Operation(summary = "Créer une famille", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Famille créée"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @PostMapping("/equipment-family")
     @JsonView(EquipmentFamilyView.class)
@@ -51,6 +72,13 @@ public class EquipmentFamilyController {
         return new ResponseEntity<>(family, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Modifier une famille", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Famille modifiée"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Famille introuvable")
+    })
     @IsGestionnaire
     @PutMapping("/equipment-family/{id}")
     public ResponseEntity<Void> update(@PathVariable Integer id, @RequestBody @Valid EquipmentFamilyRequest dto) {
@@ -61,6 +89,13 @@ public class EquipmentFamilyController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(summary = "Supprimer une famille", description = "Renvoie 409 si la famille contient encore du matériel. Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Famille supprimée"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Famille introuvable"),
+            @ApiResponse(responseCode = "409", description = "La famille contient encore du matériel")
+    })
     @IsGestionnaire
     @DeleteMapping("/equipment-family/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
@@ -76,6 +111,15 @@ public class EquipmentFamilyController {
     }
 
     // Définit quels profils peuvent emprunter cette famille (met à jour la table can_loan).
+    @Operation(
+            summary = "Définir les profils autorisés",
+            description = "Définit quels profils peuvent emprunter cette famille (met à jour la table can_loan). Gestionnaire uniquement."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Profils autorisés mis à jour"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Famille introuvable")
+    })
     @IsGestionnaire
     @PutMapping("/equipment-family/{id}/profils")
     public ResponseEntity<Void> setProfils(@PathVariable Integer id, @RequestBody ProfilIdsRequest dto) {

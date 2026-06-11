@@ -7,6 +7,10 @@ import com.locmns.model.Doc;
 import com.locmns.model.Equipment;
 import com.locmns.service.DocService;
 import com.locmns.view.DocView;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import com.locmns.security.IsGestionnaire;
 import com.locmns.security.IsUser;
@@ -21,12 +25,17 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Documents", description = "Documents liés aux équipements (notices, fiches, URL).")
 public class DocController {
 
     private final DocService docService;
     private final EquipmentDao equipmentDao;
 
     // Documents liés à un équipement, pour l'onglet Documents de la fiche.
+    @Operation(summary = "Documents d'un équipement", description = "Documents associés à un équipement. Tout utilisateur connecté.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Documents de l'équipement")
+    })
     @IsUser
     @GetMapping("/doc/equipment/{equipmentId}")
     @JsonView(DocView.class)
@@ -35,6 +44,12 @@ public class DocController {
     }
 
     // Crée un document et l'associe à un ou plusieurs équipements.
+    @Operation(summary = "Créer un document", description = "Crée un document et l'associe à un ou plusieurs équipements. Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Document créé"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @PostMapping("/doc")
     @JsonView(DocView.class)
@@ -44,6 +59,12 @@ public class DocController {
     }
 
     // Supprime un document par son id.
+    @Operation(summary = "Supprimer un document", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Document supprimé"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Document introuvable")
+    })
     @IsGestionnaire
     @DeleteMapping("/doc/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {

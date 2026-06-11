@@ -7,6 +7,10 @@ import com.locmns.model.CharacteristicValue;
 import com.locmns.model.Equipment;
 import com.locmns.service.CharacteristicValueService;
 import com.locmns.view.CharacteristicValueView;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import com.locmns.security.IsGestionnaire;
 import com.locmns.security.IsUser;
@@ -19,11 +23,16 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Caractéristiques (valeurs)", description = "Valeurs des caractéristiques techniques rattachées aux équipements.")
 public class CharacteristicValueController {
 
     private final CharacteristicValueService characteristicValueService;
 
     // Caractéristiques d'un équipement, pour l'onglet Caractéristiques de la fiche.
+    @Operation(summary = "Caractéristiques d'un équipement", description = "Valeurs de caractéristiques d'un équipement. Tout utilisateur connecté.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Caractéristiques de l'équipement")
+    })
     @IsUser
     @GetMapping("/characteristic-value/equipment/{equipmentId}")
     @JsonView(CharacteristicValueView.class)
@@ -32,6 +41,12 @@ public class CharacteristicValueController {
     }
 
     // Crée une valeur de caractéristique et l'associe à un équipement.
+    @Operation(summary = "Créer une valeur de caractéristique", description = "Associe une valeur de caractéristique à un équipement. Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Valeur créée"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire")
+    })
     @IsGestionnaire
     @PostMapping("/characteristic-value")
     @JsonView(CharacteristicValueView.class)
@@ -41,6 +56,13 @@ public class CharacteristicValueController {
     }
 
     // Met à jour la valeur d'une caractéristique existante.
+    @Operation(summary = "Modifier une valeur de caractéristique", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Valeur modifiée"),
+            @ApiResponse(responseCode = "400", description = "Données invalides"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Valeur introuvable")
+    })
     @IsGestionnaire
     @PutMapping("/characteristic-value/{id}")
     @JsonView(CharacteristicValueView.class)
@@ -56,6 +78,12 @@ public class CharacteristicValueController {
     }
 
     // Supprime une valeur de caractéristique par son id.
+    @Operation(summary = "Supprimer une valeur de caractéristique", description = "Gestionnaire uniquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Valeur supprimée"),
+            @ApiResponse(responseCode = "403", description = "Réservé au gestionnaire"),
+            @ApiResponse(responseCode = "404", description = "Valeur introuvable")
+    })
     @IsGestionnaire
     @DeleteMapping("/characteristic-value/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
