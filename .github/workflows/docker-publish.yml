@@ -1,10 +1,12 @@
-name: Publication image back
+name: CD back (publication + deploiement)
 
-# Fabrique l'image Docker du back et la publie sur Docker Hub
-# uniquement lors d'un push sur main (branche de production).
+# Lors d'un push sur main : fabrique et publie l'image back sur Docker Hub,
+# puis deploie sur la VM de l'ecole via le runner auto-heberge.
+# workflow_dispatch permet aussi un declenchement manuel (ex : redeployer apres une modif du front).
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-push:
@@ -27,3 +29,15 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/locmns-back:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/locmns-back:${{ github.sha }}
+
+  deploy:
+    # S'execute apres la publication de l'image, directement sur la VM (runner auto-heberge).
+    needs: build-push
+    runs-on: [self-hosted]
+    steps:
+      - name: Deployer le stack sur la VM
+        run: |
+          cd ~/locmns
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
+          docker image prune -f
