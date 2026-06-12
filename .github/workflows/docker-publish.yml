@@ -1,7 +1,7 @@
-name: CD back (publication + deploiement)
+name: CD back (tests + publication + deploiement)
 
-# Lors d'un push sur main : fabrique et publie l'image back sur Docker Hub,
-# puis deploie sur la VM de l'ecole via le runner auto-heberge.
+# Lors d'un push sur main : lance d'abord les tests, et SEULEMENT s'ils passent
+# fabrique et publie l'image back sur Docker Hub, puis deploie sur la VM.
 # workflow_dispatch permet aussi un declenchement manuel (ex : redeployer apres une modif du front).
 on:
   push:
@@ -9,7 +9,42 @@ on:
   workflow_dispatch:
 
 jobs:
+  # 1) Garde-fou : compile et lance les tests (unitaires + integration).
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: locmns
+          POSTGRES_USER: locmns_user
+          POSTGRES_PASSWORD: locmns_pass
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U locmns_user -d locmns"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer le JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Compiler et lancer les tests
+        run: |
+          chmod +x mvnw
+          ./mvnw --batch-mode verify
+
+  # 2) Publication de l'image : ne demarre que si les tests sont verts.
   build-push:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Recuperer le code
@@ -30,8 +65,8 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/locmns-back:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/locmns-back:${{ github.sha }}
 
+  # 3) Deploiement sur la VM (runner auto-heberge) : apres la publication de l'image.
   deploy:
-    # S'execute apres la publication de l'image, directement sur la VM (runner auto-heberge).
     needs: build-push
     runs-on: [self-hosted]
     steps:
