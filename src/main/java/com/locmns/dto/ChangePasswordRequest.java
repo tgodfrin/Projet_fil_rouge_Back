@@ -1,6 +1,7 @@
 package com.locmns.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,5 +16,6 @@ public class ChangePasswordRequest {
     private String oldPassword;
 
     @NotBlank(message = "Le nouveau mot de passe ne peut pas être vide")
+    @Size(min = 8, message = "Le mot de passe doit faire au moins 8 caractères")
     private String password;
 }
