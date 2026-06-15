@@ -8,7 +8,6 @@ import com.locmns.dto.ChangePasswordRequest;
 import com.locmns.model.AppUser;
 import com.locmns.model.Profil;
 import com.locmns.service.AppUserService;
-import com.locmns.service.EmailService;
 import com.locmns.view.AppUserView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,7 +34,6 @@ import java.util.Optional;
 public class AppUserController {
 
     private final AppUserService appUserService;
-    private final EmailService   emailService;
 
     // Seuls les gestionnaires peuvent lister tous les utilisateurs.
     @Operation(summary = "Lister tous les utilisateurs", description = "Gestionnaire uniquement.")
@@ -194,12 +192,13 @@ public class AppUserController {
         }
     }
 
-    // Modification du mot de passe par id : un gestionnaire peut changer celui de n'importe qui,
-    // un utilisateur seulement le sien. Les identifiants passent par le corps de la requête, jamais dans l'URL.
+    // Modification du mot de passe par id : un utilisateur ne peut changer que le sien (y compris un gestionnaire pour son propre compte).
+    // La réinitialisation du mot de passe d'un autre compte n'est pas permise ici : elle passe par "mot de passe oublié".
+    // Les identifiants passent par le corps de la requête, jamais dans l'URL.
     @Operation(
-            summary = "Modifier le mot de passe d'un utilisateur par id",
-            description = "Un gestionnaire peut modifier le mot de passe de n'importe qui (l'utilisateur est alors prévenu par email) ; "
-                    + "un utilisateur ne peut modifier que le sien. Identifiants dans le corps, jamais dans l'URL."
+            summary = "Modifier son propre mot de passe par id",
+            description = "Un utilisateur ne peut modifier que son propre mot de passe (l'ancien mot de passe est exigé et vérifié via BCrypt). "
+                    + "La réinitialisation du mot de passe d'un autre compte passe par 'mot de passe oublié'. Identifiants dans le corps, jamais dans l'URL."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Mot de passe modifié"),
@@ -213,20 +212,12 @@ public class AppUserController {
             @PathVariable Integer id,
             @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestBody @Valid ChangePasswordRequest dto) {
-        // Un utilisateur ne peut modifier que son propre mot de passe ; seul un gestionnaire peut modifier celui d'un autre.
-        boolean isGestionnaire = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_GESTIONNAIRE"));
-        if (!isGestionnaire && !userDetails.getUser().getId().equals(id)) {
+        // On ne peut modifier que son propre mot de passe : un gestionnaire ne change pas celui d'un autre compte.
+        if (!userDetails.getUser().getId().equals(id)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         try {
             appUserService.updatePassword(id, dto.getOldPassword(), dto.getPassword());
-            // Quand un gestionnaire change le mot de passe d'un autre utilisateur, on le prévient par email.
-            if (isGestionnaire && !userDetails.getUser().getId().equals(id)) {
-                appUserService.findById(id).ifPresent(targetUser ->
-                    emailService.sendPasswordEmail(targetUser.getEmail(), targetUser.getName(), dto.getPassword())
-                );
-            }
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AppUserService.UserNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
